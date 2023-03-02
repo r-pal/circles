@@ -1,10 +1,8 @@
-import Home from './home';
+import Table from './table';
 
 function App() {
   return (
-    <>
-<Home/>
-    </>
+    <Table/>
   );
 }
 
