@@ -1,4 +1,5 @@
-import { Column, tableColumns } from "./tableDetails";
+import { tableColumns, Column } from "./TableDetails";
+
 
 const Table = () => {
     
