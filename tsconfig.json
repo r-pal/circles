@@ -18,9 +18,12 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "outDir": "dist",
+    "sourceMap": true,
+    "types": ["p5/global"],
   },
   "include": [
-    "src"
+    "src/**/*"
   ]
 }
