@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Sketch from "./Sketch";
 import Canvas from "./Canvas";
 import Footer from "./Footer";
 import Header from "./Header";
@@ -62,7 +61,6 @@ const App: React.FC = () => {
       </div>
       <div className="bg-cyan-300 h-max">
         <Canvas/>
-        <Sketch/>
       </div>
       <Footer clicked={clicked} />
     </>
