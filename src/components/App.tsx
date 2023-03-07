@@ -1,15 +1,70 @@
+import { useState, useEffect } from "react";
+import Canvas from "./Canvas";
 import Footer from "./Footer";
 import Header from "./Header";
+import MousePosition from "./MousePosition";
 import Table from "./Table";
 
-function App() {
+const App: React.FC = () => {
+  const [mousePos, setMousePos] = useState({});
+  const [circleStart, setCircleStart] = useState({});
+  const [circleEnd, setCircleEnd] = useState({});
+  const [clicked, setClicked] = useState(false);
+
+  // const startCircleDraw = () => {
+  //   //anchor circle start at coordintes
+  //   setCircleStart(mousePos)
+  // };
+
+  useEffect(() => {
+    const handleMouseMove = (event: any) => {
+      setMousePos({ x: event.clientX, y: event.clientY });
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleClick = (event: any) => {
+      if (!clicked) {
+        setCircleStart(mousePos);
+      } else {
+        setCircleEnd(mousePos);
+      }
+      setClicked(!clicked);
+    };
+
+    window.addEventListener("click", handleClick);
+
+    // return () => {
+    //   window.removeEventListener(
+    //     'mousemove',
+    //     handleMouseMove
+    //   );
+    // };
+  });
+
   return (
-    <div className="bg-teal-300">
-    <Header/>
-    <Table/>
-    <Footer/>
-    </div>
+    <>
+      <Header />
+      <div className="bg-teal-300 h-max">
+        <Table />
+        <MousePosition
+          mousePos={mousePos}
+          circleStart={circleStart}
+          circleEnd={circleEnd}
+        />
+      </div>
+      <div className="bg-cyan-300 h-max">
+        <Canvas/>
+      </div>
+      <Footer clicked={clicked} />
+    </>
   );
-}
+};
 
 export default App;
