@@ -5,7 +5,7 @@ type FooterProps = {
 const Footer: React.FC<FooterProps> = ({clicked}) => {
 
     return(
-        <footer className="bg-indigo-500 h-24 absolute bottom-0 w-full">
+        <footer className="bg-[#3A3042] h-24 absolute bottom-0 w-full">
             {clicked ? "clicked" : "not clicked"}
         </footer>
     )

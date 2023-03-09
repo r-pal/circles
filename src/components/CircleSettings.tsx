@@ -1,7 +1,8 @@
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Colour } from "./Types";
-import { useState } from 'react'
-import { Listbox } from '@headlessui/react'
+import { useState } from "react";
+import { Listbox } from "@headlessui/react";
+import { colours } from "../constants/colours";
 
 type CircleSettingsProps = {};
 
@@ -11,7 +12,6 @@ type Inputs = {
 };
 
 const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
-
   const {
     register,
     handleSubmit,
@@ -20,17 +20,12 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
   } = useForm<Inputs>();
   const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data);
 
-  const colours = [
-    {id: 1, name: "Dark purple", hex:"#3A3042"},
-    {id: 2, name: "Earth yellow", hex:"#DB9D47"},
-    {id: 3, name: "Coral", hex:"#FF784F"},
-    {id: 4, name: "Peach Yellow", hex:"#FFE19C"},
-    {id: 5, name: "Nyanza", hex:"#EDFFD9"}]
+  const [selectedColour, setSelectedColour] = useState(colours[0]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <>
-        <div className="sm:grid sm:grid-cols-2 sm:gap-8">
+        <div className="sm:grid sm:grid-cols-2 sm:gap-8 bg-[#DB9D47]">
           Radius
           <input
             required
@@ -39,12 +34,19 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
             {...register("radius")}
           />
           Colour
-          <input
-            required
-            id="radius"
-            placeholder="Choose colour"
-            {...register("radius")}
-          />
+          <Listbox value={selectedColour} onChange={setSelectedColour}>
+            <Listbox.Button>{selectedColour.name}</Listbox.Button>
+            <Listbox.Options>
+              {colours.map((c) => (
+                <Listbox.Option
+                  key={c.id}
+                  value={c.hex}
+                >
+                  {c.name}
+                </Listbox.Option>
+              ))}
+            </Listbox.Options>
+          </Listbox>
           <button type="submit">Draw Circle</button>
         </div>
       </>

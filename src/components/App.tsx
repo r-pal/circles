@@ -52,7 +52,7 @@ const App: React.FC = () => {
   return (
     <>
       <Header />
-      <div className="bg-teal-300 h-max">
+      <div className="bg-[#3A3042] h-max">
         {/* <Table /> */}
         {/* <MousePosition
           mousePos={mousePos}
