@@ -60,10 +60,8 @@ const App: React.FC = () => {
           circleEnd={circleEnd}
         /> */}
       </div>
-      <div className="bg-cyan-300 h-max">
         <CircleSettings/>
         {/* <Sketch/> */}
-      </div>
       <Footer clicked={clicked} />
     </>
   );
