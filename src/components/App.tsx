@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Sketch from "./Sketch";
-import Canvas from "./Canvas";
+import CircleSettings from "./CircleSettings";
 import Footer from "./Footer";
 import Header from "./Header";
 import MousePosition from "./MousePosition";
@@ -53,16 +53,16 @@ const App: React.FC = () => {
     <>
       <Header />
       <div className="bg-teal-300 h-max">
-        <Table />
-        <MousePosition
+        {/* <Table /> */}
+        {/* <MousePosition
           mousePos={mousePos}
           circleStart={circleStart}
           circleEnd={circleEnd}
-        />
+        /> */}
       </div>
       <div className="bg-cyan-300 h-max">
-        <Canvas/>
-        <Sketch/>
+        <CircleSettings/>
+        {/* <Sketch/> */}
       </div>
       <Footer clicked={clicked} />
     </>
