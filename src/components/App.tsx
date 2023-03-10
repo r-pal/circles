@@ -53,15 +53,15 @@ const App: React.FC = () => {
     <>
       <Header />
       <div className="bg-[#3A3042] h-max">
-        {/* <Table /> */}
-        {/* <MousePosition
+        <Table />
+       <MousePosition
           mousePos={mousePos}
           circleStart={circleStart}
           circleEnd={circleEnd}
-        /> */}
+        />
       </div>
         <CircleSettings/>
-        {/* <Sketch/> */}
+        <Sketch/>
       <Footer clicked={clicked} />
     </>
   );
