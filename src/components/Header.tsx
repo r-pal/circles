@@ -6,8 +6,8 @@ const Header: React.FC<HeaderProps> = ({
 
 
     return(
-        <div className="bg-indigo-500 h-24">
-            <h1 className="size-large">CIRCLES!</h1>
+        <div className="bg-[#3A3042] h-full">
+            <h1 className="text-[#EDFFD9] text-9xl text-center ">CIRCLES</h1>
         </div>
     )
 }
