@@ -100,10 +100,7 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
         </>
       <div className="flex flex-col gap-4 w-full text-center pt-4">
         <button type="submit">
-          <Button text="Draw Circle"/>
-        </button>
-        <button >
-          <Button text="Save Circle" variant/>
+          <Button text="Save Circle"/>
         </button>
       </div>
       </div>

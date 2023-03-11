@@ -53,7 +53,7 @@ const App: React.FC = () => {
     <>
       <Header />
       <div className="bg-[#3A3042] h-max">
-        <Table />
+        {/* <Table /> */}
        <MousePosition
           mousePos={mousePos}
           circleStart={circleStart}
