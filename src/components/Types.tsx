@@ -1,5 +1,5 @@
 export type Colour = {
-    red: string;
-    green: string;
-    blue: string;
-  }
+  id: number;
+  name: string;
+  hex: string;
+};

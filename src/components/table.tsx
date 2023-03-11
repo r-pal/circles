@@ -1,6 +1,5 @@
 import { tableColumns, Column } from "./TableDetails";
 
-
 const Table = () => {
     
     return(
