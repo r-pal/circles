@@ -14,7 +14,7 @@ const Sketch: React.FC<SketchProps> = ({ circleSketch }) => {
     s.setup = () => s.createCanvas(1000, 1000);
     s.draw = () => {
       s.circle(30, 30, diameter);
-      s.fill(137);
+      s.fill(circleSketch.colour);
     };
   }
 
