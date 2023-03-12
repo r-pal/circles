@@ -1,18 +1,22 @@
 import { P5CanvasInstance, ReactP5Wrapper } from "react-p5-wrapper";
-import { Colour } from "./Types";
+
+//TODO: make canvas size responsive to screen size
 
 type SketchProps = {
   radius: number;
-  colour: Colour;
+  colourHex: string;
 };
 
-const Sketch: React.FC<SketchProps> = ({ radius, colour }) => {
+const Sketch: React.FC<SketchProps> = ({ radius, colourHex }) => {
   const diameter = radius * 2;
 
-  function sketch(p5: P5CanvasInstance) {
-    p5.setup = () => p5.createCanvas(500, 500);
-    p5.draw = () => p5.circle(30, 30, diameter);
-  }
+  const sketch = (s: P5CanvasInstance) => {
+    s.setup = () => s.createCanvas(1000, 1000);
+    s.draw = () => {
+      s.circle(30, 30, diameter);
+      s.fill(colourHex);
+    };
+  };
 
   return <ReactP5Wrapper sketch={sketch} />;
 };
