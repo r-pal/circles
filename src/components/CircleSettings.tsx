@@ -1,20 +1,19 @@
 import { useForm, SubmitHandler, useWatch } from "react-hook-form";
 import { Colour } from "./Types";
-import { Fragment, useState } from "react";
-import { Listbox, Transition } from "@headlessui/react";
+import { useState } from "react";
 import { colours } from "../constants/colours";
-import { CaretDown, Check } from "phosphor-react";
 import Button from "./Button";
 import Sketch from "./Sketch";
 
 type CircleSettingsProps = {};
 
-type Inputs = {
+export type Inputs = {
   radius: number;
   colour: Colour;
 };
 
 const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
+  const [circleSketch, setCircleSketch] = useState<Inputs>();
   const {
     register,
     handleSubmit,
@@ -22,11 +21,9 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
     formState: { errors },
     control,
   } = useForm<Inputs>();
-  const onSubmit: SubmitHandler<Inputs> = (data) => console.log(data);
+  const onSubmit: SubmitHandler<Inputs> = (data) => setCircleSketch(data);
 
-  const [selectedColour, setSelectedColour] = useState(colours[0]);
-
-  const radius = useWatch({ control, name: "radius" });
+  const [selectedColour, setSelectedColour] = useState(colours[1]);
 
   return (
     <>
@@ -41,7 +38,6 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
                 placeholder="Enter radius in cm"
                 {...register("radius")}
               />
-              Colour
             </div>
           </>
           <div className="flex flex-col gap-4 w-full text-center pt-4">
@@ -51,7 +47,7 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
           </div>
         </div>
       </form>
-      <Sketch radius={radius} colourHex={selectedColour.hex} />
+      {circleSketch && <Sketch circleSketch={circleSketch} />}
     </>
   );
 };
