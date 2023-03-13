@@ -22,13 +22,13 @@ const Sketch: React.FC<SketchProps> = ({ circleSketch }) => {
   };
 
   const sketch = (s: P5CanvasInstance) => {
-    let x: number = s.random(0, s.width);
-    let y: number = s.random(0, s.height);
+    let x: number;
+    let y: number;
 
     s.setup = () => {
       s.createCanvas(canvasWidth(), 500);
-      x = s.width / 2;
-      y = s.height / 2;
+      x = s.random(0, s.width);
+      y = s.random(0, s.height);
       console.log("width: ", s.width);
     };
 
