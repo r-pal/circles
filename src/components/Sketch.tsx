@@ -35,19 +35,22 @@ const Sketch: React.FC<SketchProps> = ({ circleSketch }) => {
     // s.setup = () => s.createCanvas(1000, 660);
     s.draw = () => {
       s.background(100);
-      console.log("x: ", x, "y: ", y);
       s.ellipse(x, y, diameter, diameter);
       s.fill(circleSketch.colour);
+      x = x + s.random(-1, 1);
+      y = y + s.random(-1, 1);
     };
+
     s.mousePressed = () => {
       let d = s.dist(s.mouseX, s.mouseY, x, y);
       if (d < 100) {
         console.log("pressed");
-        x = x + s.random(-10, 10);
-        y = y + s.random(-10, 10);
       }
       if (y < 0) {
         y = s.height;
+      }
+      if (x < 0) {
+        x = s.width;
       }
     };
   };

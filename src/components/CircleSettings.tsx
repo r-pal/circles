@@ -17,6 +17,8 @@ export type Inputs = {
 
 const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
   const [circleSketch, setCircleSketch] = useState<Inputs>();
+  const [jiggliness, setJiggliness] = useState(0);
+  console.log(jiggliness);
   const { register, handleSubmit, control } = useForm<Inputs>();
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     setCircleSketch(data);
@@ -63,6 +65,16 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
           </button> */}
         </div>
       </form>
+      <input
+        type="range"
+        step="1"
+        min="1"
+        max="10"
+        value={jiggliness}
+        className="range range-md"
+        id="Jigglyness"
+        onChange={(e) => setJiggliness(Number(e.target.value))}
+      />
       {circleSketch && <Sketch circleSketch={circleSketch} />}
     </>
   );
