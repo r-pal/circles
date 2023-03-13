@@ -25,42 +25,40 @@ const Sketch: React.FC<SketchProps> = ({ circleSketch, jiggliness }) => {
   const sketch = (s: P5CanvasInstance) => {
     let x: number;
     let y: number;
+    let n: number;
+    let circles = [];
 
     s.setup = () => {
       s.createCanvas(canvasWidth(), 500);
       x = s.random(0, s.width);
       y = s.random(0, s.height);
-      console.log("width: ", s.width);
     };
 
-    // s.setup = () => s.createCanvas(1000, 660);
     s.draw = () => {
-      s.background(100);
-      s.ellipse(x, y, diameter, diameter);
-      s.fill(circleSketch.colour);
-      x = x + s.random(-jiggliness, jiggliness);
-      y = y + s.random(-jiggliness, jiggliness);
-      // in case it jiggles off screen:
-      if (y < 0) {
-        y = s.height;
-      }
-      if (x < 0) {
-        x = s.width;
+      s.background(50, 89, 100);
+      n = 6;
+      for (let i = 0; i < n; i++) {
+        s.ellipse(x, y, diameter, diameter);
+        s.fill(circleSketch.colour);
+        x = x + s.random(-jiggliness, jiggliness);
+        y = y + s.random(-3 * jiggliness, 3 * jiggliness);
+        // in case it jiggles off screen:
+        if (y < 0) {
+          y = s.height;
+        }
+        if (x < 0) {
+          x = s.width;
+        }
       }
     };
 
-    // s.mousePressed = () => {
-    //   let d = s.dist(s.mouseX, s.mouseY, x, y);
-    //   if (d < 100) {
-    //     console.log("pressed");
-    //   }
-    //   if (y < 0) {
-    //     y = s.height;
-    //   }
-    //   if (x < 0) {
-    //     x = s.width;
-    //   }
-    // };
+    s.mousePressed = () => {
+      let d = s.dist(s.mouseX, s.mouseY, x, y);
+      if (d < diameter) {
+        console.log("pressed");
+        y = y + 50;
+      }
+    };
   };
 
   return <ReactP5Wrapper sketch={sketch} />;
