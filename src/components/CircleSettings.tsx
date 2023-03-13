@@ -85,9 +85,11 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
           </div>
         </form>
       </div>
-      {circleSketch && (
-        <Sketch circleSketch={circleSketch} jiggliness={jiggliness} />
-      )}
+      <div className="bg-[#315964]">
+        {circleSketch && (
+          <Sketch circleSketch={circleSketch} jiggliness={jiggliness} />
+        )}
+      </div>
     </>
   );
 };
