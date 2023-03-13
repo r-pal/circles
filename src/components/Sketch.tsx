@@ -4,9 +4,10 @@ import { Inputs } from "./CircleSettings";
 //TODO: make canvas size responsive to screen size
 type SketchProps = {
   circleSketch: Inputs;
+  jiggliness: number;
 };
 
-const Sketch: React.FC<SketchProps> = ({ circleSketch }) => {
+const Sketch: React.FC<SketchProps> = ({ circleSketch, jiggliness }) => {
   const diameter = circleSketch.radius * 2;
   const canvasWidth = () => {
     if (window.innerWidth > 200) {
@@ -37,15 +38,9 @@ const Sketch: React.FC<SketchProps> = ({ circleSketch }) => {
       s.background(100);
       s.ellipse(x, y, diameter, diameter);
       s.fill(circleSketch.colour);
-      x = x + s.random(-1, 1);
-      y = y + s.random(-1, 1);
-    };
-
-    s.mousePressed = () => {
-      let d = s.dist(s.mouseX, s.mouseY, x, y);
-      if (d < 100) {
-        console.log("pressed");
-      }
+      x = x + s.random(-jiggliness, jiggliness);
+      y = y + s.random(-jiggliness, jiggliness);
+      // in case it jiggles off screen:
       if (y < 0) {
         y = s.height;
       }
@@ -53,6 +48,19 @@ const Sketch: React.FC<SketchProps> = ({ circleSketch }) => {
         x = s.width;
       }
     };
+
+    // s.mousePressed = () => {
+    //   let d = s.dist(s.mouseX, s.mouseY, x, y);
+    //   if (d < 100) {
+    //     console.log("pressed");
+    //   }
+    //   if (y < 0) {
+    //     y = s.height;
+    //   }
+    //   if (x < 0) {
+    //     x = s.width;
+    //   }
+    // };
   };
 
   return <ReactP5Wrapper sketch={sketch} />;

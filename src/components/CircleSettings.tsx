@@ -65,17 +65,22 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
           </button> */}
         </div>
       </form>
-      <input
-        type="range"
-        step="1"
-        min="1"
-        max="10"
-        value={jiggliness}
-        className="range range-md"
-        id="Jigglyness"
-        onChange={(e) => setJiggliness(Number(e.target.value))}
-      />
-      {circleSketch && <Sketch circleSketch={circleSketch} />}
+      <div className="flex">
+        <div>Jiggly Factor</div>
+        <input
+          type="range"
+          step="1"
+          min="1"
+          max="10"
+          value={jiggliness}
+          className="range range-md"
+          id="Jigglyness"
+          onChange={(e) => setJiggliness(Number(e.target.value))}
+        />
+      </div>
+      {circleSketch && (
+        <Sketch circleSketch={circleSketch} jiggliness={jiggliness} />
+      )}
     </>
   );
 };
