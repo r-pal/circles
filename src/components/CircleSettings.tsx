@@ -29,11 +29,12 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="w-1/2 bg-[#DB9D47]">
           <div className="sm:grid sm:grid-cols-2 sm:gap-8">
-            Radius
+            Radius (px)
             <input
               required
               id="radius"
               placeholder="Enter radius in px"
+              defaultValue={50}
               {...register("radius")}
             />
           </div>
@@ -57,9 +58,9 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
           <button type="submit">
             <Button text="Draw Circle" />
           </button>
-          <button>
+          {/* <button>
             <Button text="Save Circle" variant />
-          </button>
+          </button> */}
         </div>
       </form>
       {circleSketch && <Sketch circleSketch={circleSketch} />}
