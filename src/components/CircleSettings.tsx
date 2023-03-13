@@ -1,11 +1,9 @@
-import { useForm, SubmitHandler, useWatch } from "react-hook-form";
+import { useForm, SubmitHandler } from "react-hook-form";
 import { Colour } from "./Types";
-import { Fragment, useEffect, useState } from "react";
+import { useState } from "react";
 import { colours } from "../constants/colours";
 import Button from "./Button";
 import Sketch from "./Sketch";
-import { Listbox, Transition } from "@headlessui/react";
-import { CaretDown, Check } from "phosphor-react";
 import clsx from "clsx";
 
 type CircleSettingsProps = {};
@@ -15,21 +13,19 @@ export type Inputs = {
   colour: Colour;
 };
 
-const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
+const CircleSettings: React.FC<CircleSettingsProps> = () => {
   const [circleSketch, setCircleSketch] = useState<Inputs>();
   const [selectedColour, setSelectedColour] = useState("");
   const [jiggliness, setJiggliness] = useState(0);
-  console.log(jiggliness);
   const { register, handleSubmit, control } = useForm<Inputs>();
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     setCircleSketch(data);
     console.log(data);
   };
-  // const selectedColour = useWatch({ control, name: "colour" });
 
   return (
-    <>
-      <div className="bg-[#DB9D47] grid content-center">
+    <div>
+      <div className="bg-[#DB9D47] grid content-center h-[156px]">
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="w-full bg-[#DB9D47] flex flex-col items-center gap-3">
             <div>
@@ -90,7 +86,7 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({}) => {
           <Sketch circleSketch={circleSketch} jiggliness={jiggliness} />
         )}
       </div>
-    </>
+    </div>
   );
 };
 

@@ -4,11 +4,11 @@ import Header from "./Header";
 
 const App: React.FC = () => {
   return (
-    <>
+    <div>
       <Header />
       <CircleSettings />
       <Footer />
-    </>
+    </div>
   );
 };
 

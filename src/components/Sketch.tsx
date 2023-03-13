@@ -1,7 +1,6 @@
 import { P5CanvasInstance, ReactP5Wrapper } from "react-p5-wrapper";
 import { Inputs } from "./CircleSettings";
 
-//TODO: make canvas size responsive to screen size
 type SketchProps = {
   circleSketch: Inputs;
   jiggliness: number;
@@ -14,11 +13,11 @@ const Sketch: React.FC<SketchProps> = ({ circleSketch, jiggliness }) => {
       return window.innerWidth;
     } else return 200;
   };
+  //h of component = h of window - header - settings - footer
+  const componentHeight = window.innerHeight - 3 * 156;
   const canvasHeight = () => {
-    if (window.innerHeight > 200) {
-      return window.innerHeight;
-    } else if (window.innerHeight < 500) {
-      return 500;
+    if (componentHeight > 200) {
+      return componentHeight;
     } else return 200;
   };
 
@@ -29,7 +28,7 @@ const Sketch: React.FC<SketchProps> = ({ circleSketch, jiggliness }) => {
     let circles = [];
 
     s.setup = () => {
-      s.createCanvas(canvasWidth(), 500);
+      s.createCanvas(canvasWidth(), canvasHeight());
       x = s.random(0, s.width);
       y = s.random(0, s.height);
     };
