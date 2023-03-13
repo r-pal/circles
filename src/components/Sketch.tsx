@@ -4,9 +4,14 @@ import { Inputs } from "./CircleSettings";
 type SketchProps = {
   circleSketch: Inputs;
   jiggliness: number;
+  setGameResult: (value: "won" | "lost" | undefined) => void;
 };
 
-const Sketch: React.FC<SketchProps> = ({ circleSketch, jiggliness }) => {
+const Sketch: React.FC<SketchProps> = ({
+  circleSketch,
+  jiggliness,
+  setGameResult,
+}) => {
   const diameter = circleSketch.radius * 2;
   const canvasWidth = () => {
     if (window.innerWidth > 200) {
@@ -30,24 +35,33 @@ const Sketch: React.FC<SketchProps> = ({ circleSketch, jiggliness }) => {
     s.setup = () => {
       s.createCanvas(canvasWidth(), canvasHeight());
       x = s.random(0, s.width);
-      y = s.random(0, s.height);
+      y = s.random(s.height / 2, s.height / 3);
     };
 
     s.draw = () => {
       s.background(50, 89, 100);
+      console.log(s.height);
       n = 6;
       for (let i = 0; i < n; i++) {
         s.ellipse(x, y, diameter, diameter);
         s.fill(circleSketch.colour);
+        // jiggling
         x = x + s.random(-jiggliness, jiggliness);
-        y = y + s.random(-3 * jiggliness, 3 * jiggliness);
-        // in case it jiggles off screen:
+        y = y + s.random(-jiggliness, jiggliness);
+        // lose condition
         if (y < 0) {
-          y = s.height;
+          setGameResult("lost");
         }
+        // win condition
+        if (y >= s.height) {
+          setGameResult("won");
+        }
+        // in case it jiggles off screen x-axis:
         if (x < 0) {
           x = s.width;
         }
+        //
+        y = y - 1;
       }
     };
 
@@ -55,7 +69,7 @@ const Sketch: React.FC<SketchProps> = ({ circleSketch, jiggliness }) => {
       let d = s.dist(s.mouseX, s.mouseY, x, y);
       if (d < diameter) {
         console.log("pressed");
-        y = y + 50;
+        y = y + 100;
       }
     };
   };
