@@ -16,5 +16,5 @@ module.exports = {
       transparent: 'transparent',
     },
   },
-  plugins: [],
+  plugins: [require("daisyui")],
 }
