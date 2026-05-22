@@ -63,6 +63,13 @@ export const themes: Record<ThemeId, Theme> = {
 
 export const THEME_ORDER: ThemeId[] = ["sea", "tangerine", "coral"];
 
+export const THEME_CYCLE_MS = 5000;
+
+export const nextThemeId = (current: ThemeId): ThemeId => {
+  const index = THEME_ORDER.indexOf(current);
+  return THEME_ORDER[(index + 1) % THEME_ORDER.length];
+};
+
 export const isThemeId = (value: string): value is ThemeId =>
   value in themes;
 

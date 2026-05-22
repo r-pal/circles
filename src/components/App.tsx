@@ -8,13 +8,20 @@ import Button from "./Button";
 import Level00, { DEFAULT_IDLE_CIRCLE_COUNT } from "./Level00";
 import { useTheme } from "../context/ThemeContext";
 import { setGameCanvasLayout } from "../constants/canvas";
-import { pickRandomThemeId, type ThemeId } from "../constants/themes";
+import {
+  nextThemeId,
+  pickRandomThemeId,
+  THEME_CYCLE_MS,
+  type ThemeId,
+} from "../constants/themes";
 import { formatRunTime, RUN_TIMER_TICK_MS, totalRunTicks } from "../utils";
 
 const MAX_LEVEL = 5;
 
 const App: React.FC = () => {
   const { theme, themeId, setThemeId } = useTheme();
+  const themeIdRef = useRef(themeId);
+  themeIdRef.current = themeId;
   const previousLevelThemeRef = useRef<ThemeId | null>(null);
   const [gameResult, setGameResult] = useState<"won" | "lost" | undefined>(
     undefined
@@ -53,6 +60,16 @@ const App: React.FC = () => {
     previousLevelThemeRef.current = next;
     setThemeId(next);
   }, [gameLive, level, setThemeId]);
+
+  useEffect(() => {
+    if (gameLive) return;
+
+    const interval = setInterval(() => {
+      setThemeId(nextThemeId(themeIdRef.current));
+    }, THEME_CYCLE_MS);
+
+    return () => clearInterval(interval);
+  }, [gameLive, setThemeId]);
 
   const startGame = useCallback(() => {
     if (gameLive) return;
