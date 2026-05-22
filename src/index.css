@@ -12,6 +12,7 @@
   --theme-selection: #ff784f;
   --theme-button-bg: #edffd9;
   --theme-button-text: #3a3042;
+  --theme-on-canvas: #edffd9;
 }
 
 ::selection {

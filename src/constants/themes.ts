@@ -11,6 +11,8 @@ export type Theme = {
   selection: string;
   buttonBg: string;
   buttonText: string;
+  /** Text readable on the game canvas (may differ from header foreground) */
+  onCanvas: string;
   defaultCircle: { colour1: string; colour2: string };
 };
 
@@ -26,6 +28,7 @@ export const themes: Record<ThemeId, Theme> = {
     selection: "#FF784F",
     buttonBg: "#EDFFD9",
     buttonText: "#3A3042",
+    onCanvas: "#EDFFD9",
     defaultCircle: { colour1: "#3A3042", colour2: "#EDFFD9" },
   },
   tangerine: {
@@ -39,6 +42,7 @@ export const themes: Record<ThemeId, Theme> = {
     selection: "#EDFFD9",
     buttonBg: "#3A3042",
     buttonText: "#EDFFD9",
+    onCanvas: "#EDFFD9",
     defaultCircle: { colour1: "#DB9D47", colour2: "#3A3042" },
   },
   coral: {
@@ -52,6 +56,7 @@ export const themes: Record<ThemeId, Theme> = {
     selection: "#DB9D47",
     buttonBg: "#3A3042",
     buttonText: "#EDFFD9",
+    onCanvas: "#3A3042",
     defaultCircle: { colour1: "#FF784F", colour2: "#EDFFD9" },
   },
 };

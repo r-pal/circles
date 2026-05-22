@@ -7,6 +7,7 @@ module.exports = {
         canvas: "var(--theme-canvas)",
         surface: "var(--theme-surface)",
         foreground: "var(--theme-foreground)",
+        "on-canvas": "var(--theme-on-canvas)",
         accent: "var(--theme-accent)",
         "btn-fill": "var(--theme-button-bg)",
         "btn-text": "var(--theme-button-text)",

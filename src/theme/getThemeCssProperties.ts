@@ -11,4 +11,5 @@ export const getThemeCssProperties = (theme: Theme): CSSProperties =>
     "--theme-selection": theme.selection,
     "--theme-button-bg": theme.buttonBg,
     "--theme-button-text": theme.buttonText,
+    "--theme-on-canvas": theme.onCanvas,
   }) as CSSProperties;

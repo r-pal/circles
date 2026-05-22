@@ -3,6 +3,7 @@ import Level01 from "./Level01";
 import Level02 from "./Level02";
 import Level03 from "./Level03";
 import Level04 from "./Level04";
+import Level05 from "./Level05";
 
 type GameProps = {
   settings: Settings;
@@ -39,6 +40,12 @@ const Game: React.FC<GameProps> = ({
       setMessage={setMessage}
     />,
     <Level04
+      settings={settings}
+      setGameResult={setGameResult}
+      setGameLive={setGameLive}
+      setMessage={setMessage}
+    />,
+    <Level05
       settings={settings}
       setGameResult={setGameResult}
       setGameLive={setGameLive}

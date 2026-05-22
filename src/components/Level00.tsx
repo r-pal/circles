@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { P5CanvasInstance, ReactP5Wrapper } from "react-p5-wrapper";
 import { getGameCanvasDimensions } from "../constants/canvas";
 import { useLiveCallback } from "../hooks/useLiveCallback";
@@ -11,27 +11,37 @@ import {
 } from "../utils";
 import { Settings } from "./CircleSettings";
 
-const START_CIRCLE_COUNT = 5;
+export const DEFAULT_IDLE_CIRCLE_COUNT = 5;
 
 type CircleState = { x: number; y: number };
 
 type Level00Props = {
   settings: Settings;
   startGame: () => void;
+  /** Circles on screen — break screen uses completed round count */
+  circleCount?: number;
 };
 
-const Level00: React.FC<Level00Props> = ({ settings, startGame }) => {
+const Level00: React.FC<Level00Props> = ({
+  settings,
+  startGame,
+  circleCount = DEFAULT_IDLE_CIRCLE_COUNT,
+}) => {
   const settingsRef = useLiveSettings(settings);
   const startGameRef = useLiveCallback(startGame);
+  const circleCountRef = useRef(circleCount);
+  circleCountRef.current = circleCount;
 
   const sketch = useCallback(
     (s: P5CanvasInstance) => {
       const live = () => settingsRef.current;
+      const targetCount = () => circleCountRef.current;
       let circles: CircleState[] = [];
 
       const initCircles = () => {
         const pad = live().radius;
-        circles = Array.from({ length: START_CIRCLE_COUNT }, () => ({
+        const n = Math.max(0, targetCount());
+        circles = Array.from({ length: n }, () => ({
           x: s.random(pad, Math.max(pad + 1, s.width - pad)),
           y: s.random(pad, Math.max(pad + 1, s.height - pad)),
         }));
@@ -67,6 +77,10 @@ const Level00: React.FC<Level00Props> = ({ settings, startGame }) => {
       };
 
       s.draw = () => {
+        if (circles.length !== targetCount()) {
+          initCircles();
+        }
+
         runMotionTrailFrame(s, () => {
           const current = live();
           const diameter = current.radius * 2;
@@ -85,7 +99,7 @@ const Level00: React.FC<Level00Props> = ({ settings, startGame }) => {
         }
       };
     },
-    [settingsRef, startGameRef]
+    [settingsRef, startGameRef, circleCountRef]
   );
 
   return <ReactP5Wrapper sketch={sketch} />;

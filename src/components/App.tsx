@@ -4,13 +4,14 @@ import CircleSettings, { Settings } from "./CircleSettings";
 import Game from "./Game";
 import Header from "./Header";
 import LevelAdviceFooter from "./LevelAdviceFooter";
-import Level00 from "./Level00";
+import Button from "./Button";
+import Level00, { DEFAULT_IDLE_CIRCLE_COUNT } from "./Level00";
 import { useTheme } from "../context/ThemeContext";
 import { setGameCanvasLayout } from "../constants/canvas";
 import { pickRandomThemeId, type ThemeId } from "../constants/themes";
 import { formatRunTime, RUN_TIMER_TICK_MS, totalRunTicks } from "../utils";
 
-const MAX_LEVEL = 4;
+const MAX_LEVEL = 5;
 
 const App: React.FC = () => {
   const { theme, themeId, setThemeId } = useTheme();
@@ -25,7 +26,7 @@ const App: React.FC = () => {
     colour2: theme.defaultCircle.colour2,
     jiggliness: 3,
   });
-  const [level, setLevel] = useState(1);
+  const [level, setLevel] = useState(5);
   const [message, setMessage] = useState("");
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [levelSplits, setLevelSplits] = useState<number[]>([]);
@@ -104,6 +105,8 @@ const App: React.FC = () => {
   const showSplits = campaignComplete && levelSplits.length > 0;
 
   const showLevelAdvice = gameLive && message.length > 0;
+  const idleCircleCount =
+    gameResult === "won" ? levelSplits.length : DEFAULT_IDLE_CIRCLE_COUNT;
 
   useEffect(() => {
     setGameCanvasLayout({ mobileAdviceFooterVisible: showLevelAdvice });
@@ -140,33 +143,37 @@ const App: React.FC = () => {
                   showLevelAdvice ? "bottom-20 md:bottom-10" : "bottom-10"
                 )}
               >
-                <p className="text-foreground text-5xl md:text-7xl leading-none">
+                <p className="text-on-canvas text-5xl md:text-7xl leading-none">
                   {formatRunTime(timeElapsed)}
                 </p>
-                <p className="text-foreground/80 text-xl md:text-2xl mt-1">
+                <p className="text-on-canvas/80 text-xl md:text-2xl mt-1">
                   Level {level}
                 </p>
               </div>
             </>
           ) : (
             <>
-              <Level00 settings={settings} startGame={startGame} />
+              <Level00
+                settings={settings}
+                startGame={startGame}
+                circleCount={idleCircleCount}
+              />
               <div className="absolute top-1/2 inset-0 flex flex-col items-center justify-center z-50 pointer-events-none select-none text-center px-4">
                 {gameResult === "won" && (
                   <>
-                    <h1 className="text-foreground text-7xl md:text-9xl">
+                    <h1 className="text-on-canvas text-7xl md:text-9xl">
                       WINNER
                     </h1>
                     {lastSplit !== undefined && (
-                      <p className="text-foreground text-2xl md:text-4xl mt-4">
+                      <p className="text-on-canvas text-2xl md:text-4xl mt-4">
                         Level {levelSplits.length}: {formatRunTime(lastSplit)}
                       </p>
                     )}
-                    <p className="text-foreground text-3xl md:text-5xl mt-2">
+                    <p className="text-on-canvas text-3xl md:text-5xl mt-2">
                       Total: {formatRunTime(runTotal || timeElapsed)}
                     </p>
                     {showSplits && (
-                      <ul className="text-foreground/90 text-lg md:text-2xl mt-6 space-y-1">
+                      <ul className="text-on-canvas/90 text-lg md:text-2xl mt-6 space-y-1">
                         {levelSplits.map((split, i) => (
                           <li key={i}>
                             Level {i + 1}: {formatRunTime(split)}
@@ -178,14 +185,25 @@ const App: React.FC = () => {
                 )}
                 {gameResult === "lost" && (
                   <>
-                    <h1 className="text-coral text-7xl md:text-9xl">
-                      YOU LOSE
-                    </h1>
-                    <p className="text-foreground text-2xl md:text-4xl mt-4">
+                    <div
+                      className="pointer-events-auto cursor-pointer"
+                      onClick={startGame}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          startGame();
+                        }
+                      }}
+                    >
+                      <Button type="button" text="TRY AGAIN" header />
+                    </div>
+                    <p className="text-on-canvas text-2xl md:text-4xl mt-6">
                       Time: {formatRunTime(timeElapsed)}
                     </p>
                     {levelSplits.length > 0 && (
-                      <p className="text-foreground/80 text-lg md:text-xl mt-2">
+                      <p className="text-on-canvas/80 text-lg md:text-xl mt-2">
                         Best total so far: {formatRunTime(runTotal)}
                       </p>
                     )}
