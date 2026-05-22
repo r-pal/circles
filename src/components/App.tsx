@@ -8,20 +8,13 @@ import Button from "./Button";
 import Level00, { DEFAULT_IDLE_CIRCLE_COUNT } from "./Level00";
 import { useTheme } from "../context/ThemeContext";
 import { setGameCanvasLayout } from "../constants/canvas";
-import {
-  nextThemeId,
-  pickRandomThemeId,
-  THEME_CYCLE_MS,
-  type ThemeId,
-} from "../constants/themes";
+import { pickRandomThemeId, type ThemeId } from "../constants/themes";
 import { formatRunTime, RUN_TIMER_TICK_MS, totalRunTicks } from "../utils";
 
 const MAX_LEVEL = 5;
 
 const App: React.FC = () => {
   const { theme, themeId, setThemeId } = useTheme();
-  const themeIdRef = useRef(themeId);
-  themeIdRef.current = themeId;
   const previousLevelThemeRef = useRef<ThemeId | null>(null);
   const [gameResult, setGameResult] = useState<"won" | "lost" | undefined>(
     undefined
@@ -33,7 +26,7 @@ const App: React.FC = () => {
     colour2: theme.defaultCircle.colour2,
     jiggliness: 3,
   });
-  const [level, setLevel] = useState(5);
+  const [level, setLevel] = useState(1);
   const [message, setMessage] = useState("");
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [levelSplits, setLevelSplits] = useState<number[]>([]);
@@ -58,18 +51,8 @@ const App: React.FC = () => {
     const exclude = previousLevelThemeRef.current ?? undefined;
     const next = pickRandomThemeId(exclude);
     previousLevelThemeRef.current = next;
-    setThemeId(next);
+    setThemeId(next, { preserveWheel: true });
   }, [gameLive, level, setThemeId]);
-
-  useEffect(() => {
-    if (gameLive) return;
-
-    const interval = setInterval(() => {
-      setThemeId(nextThemeId(themeIdRef.current));
-    }, THEME_CYCLE_MS);
-
-    return () => clearInterval(interval);
-  }, [gameLive, setThemeId]);
 
   const startGame = useCallback(() => {
     if (gameLive) return;
