@@ -72,11 +72,3 @@ export const nextThemeId = (current: ThemeId): ThemeId => {
 
 export const isThemeId = (value: string): value is ThemeId =>
   value in themes;
-
-/** Random theme; pass the previous level's theme to avoid repeats */
-export const pickRandomThemeId = (exclude?: ThemeId): ThemeId => {
-  const pool = exclude
-    ? THEME_ORDER.filter((id) => id !== exclude)
-    : THEME_ORDER;
-  return pool[Math.floor(Math.random() * pool.length)];
-};

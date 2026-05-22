@@ -32,9 +32,12 @@ const Header: React.FC<HeaderProps> = ({
   const showStartButton = Boolean(label);
 
   return (
-    <div className="bg-surface flex items-center gap-2 px-2 py-1.5 select-none">
+    <header
+      id="app-header"
+      className="bg-surface flex items-center gap-2 px-2 py-1.5 select-none shrink-0"
+    >
       <h1 className="text-foreground h-[35px] text-4xl xl:text-7xl xl:h-[66px] left-2 shrink-0">
-        <a href="https://r-pal.github.io">CIRCLES</a>
+        <a href="https://r-pal.github.io/circles">CIRCLES</a>
       </h1>
       <div className="flex flex-1 items-center justify-end gap-2 md:gap-3 min-w-0">
         {message ? (
@@ -60,7 +63,7 @@ const Header: React.FC<HeaderProps> = ({
         )}
       </div>
       <ThemeCycleBar />
-    </div>
+    </header>
   );
 };
 

@@ -19,7 +19,7 @@ const ThemeShell = ({ theme, children }: ThemeShellProps) => {
     <div
       id="theme-root"
       data-theme={theme.id}
-      className="min-h-screen flex flex-col bg-canvas text-foreground"
+      className="h-screen max-h-screen overflow-hidden flex flex-col bg-canvas text-foreground"
       style={getThemeCssProperties(theme)}
     >
       {children}

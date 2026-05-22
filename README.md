@@ -1,6 +1,6 @@
 # Circles
 
-A browser puzzle game built with React and [p5.js](https://p5js.org/). You guide a colourful circle through five levels—clicking, growing, painting, and orbiting your way to each goal—while a run timer tracks your speed. Palettes cycle on a theme wheel in the header (click to pause), and each level can pick a fresh colour scheme when you start.
+A browser puzzle game built with React and [p5.js](https://p5js.org/). You guide a colourful circle through five levels—clicking, growing, painting, and orbiting your way to each goal—while a run timer tracks your speed. Palettes cycle on a theme wheel in the header (click to pause)—that wheel is the only thing that changes the colours.
 
 **Play:** [https://r-pal.github.io/circles](https://r-pal.github.io/circles)
 

@@ -1,7 +1,5 @@
-const XL_BREAKPOINT = 1280;
 const MD_BREAKPOINT = 768;
-const XL_BANNER_HEIGHT = 66;
-const DEFAULT_BANNER_HEIGHT = 35;
+const HEADER_FALLBACK_HEIGHT = 48;
 const FOOTER_FALLBACK_HEIGHT = 48;
 
 export type GameCanvasLayout = {
@@ -14,8 +12,10 @@ export const setGameCanvasLayout = (partial: Partial<GameCanvasLayout>) => {
   layout = { ...layout, ...partial };
 };
 
-export const getBannerHeight = () =>
-  window.innerWidth > XL_BREAKPOINT ? XL_BANNER_HEIGHT : DEFAULT_BANNER_HEIGHT;
+export const getHeaderHeight = () => {
+  const el = document.getElementById("app-header");
+  return el?.offsetHeight ?? HEADER_FALLBACK_HEIGHT;
+};
 
 export const getMobileAdviceFooterHeight = () => {
   if (window.innerWidth >= MD_BREAKPOINT) return 0;
@@ -25,8 +25,20 @@ export const getMobileAdviceFooterHeight = () => {
   return el?.offsetHeight ?? FOOTER_FALLBACK_HEIGHT;
 };
 
-export const getGameCanvasDimensions = () => ({
-  width: window.innerWidth,
-  height:
-    window.innerHeight - getBannerHeight() - getMobileAdviceFooterHeight(),
-});
+/** Size to the flex middle panel, or viewport minus measured chrome */
+export const getGameCanvasDimensions = () => {
+  const stage = document.getElementById("game-stage");
+  if (stage && stage.clientWidth > 0 && stage.clientHeight > 0) {
+    return {
+      width: stage.clientWidth,
+      height: stage.clientHeight,
+    };
+  }
+
+  const header = getHeaderHeight();
+  const footer = getMobileAdviceFooterHeight();
+  return {
+    width: document.documentElement.clientWidth,
+    height: Math.max(0, window.innerHeight - header - footer),
+  };
+};

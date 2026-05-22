@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import clsx from "clsx";
 import CircleSettings, { Settings } from "./CircleSettings";
 import Game from "./Game";
@@ -8,14 +8,12 @@ import Button from "./Button";
 import Level00, { DEFAULT_IDLE_CIRCLE_COUNT } from "./Level00";
 import { useTheme } from "../context/ThemeContext";
 import { setGameCanvasLayout } from "../constants/canvas";
-import { pickRandomThemeId, type ThemeId } from "../constants/themes";
 import { formatRunTime, RUN_TIMER_TICK_MS, totalRunTicks } from "../utils";
 
 const MAX_LEVEL = 5;
 
 const App: React.FC = () => {
-  const { theme, themeId, setThemeId } = useTheme();
-  const previousLevelThemeRef = useRef<ThemeId | null>(null);
+  const { theme, themeId } = useTheme();
   const [gameResult, setGameResult] = useState<"won" | "lost" | undefined>(
     undefined
   );
@@ -42,17 +40,7 @@ const App: React.FC = () => {
   const resetRun = () => {
     setTimeElapsed(0);
     setLevelSplits([]);
-    previousLevelThemeRef.current = null;
   };
-
-  useEffect(() => {
-    if (!gameLive) return;
-
-    const exclude = previousLevelThemeRef.current ?? undefined;
-    const next = pickRandomThemeId(exclude);
-    previousLevelThemeRef.current = next;
-    setThemeId(next, { preserveWheel: true });
-  }, [gameLive, level, setThemeId]);
 
   const startGame = useCallback(() => {
     if (gameLive) return;
@@ -113,8 +101,26 @@ const App: React.FC = () => {
     requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
   }, [showLevelAdvice]);
 
+  useEffect(() => {
+    const targets = ["game-stage", "app-header", "level-advice-footer"]
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (targets.length === 0) return;
+
+    const notify = () => window.dispatchEvent(new Event("resize"));
+    const observer = new ResizeObserver(() => notify());
+    targets.forEach((el) => observer.observe(el));
+    window.addEventListener("resize", notify);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", notify);
+    };
+  }, [showLevelAdvice]);
+
   return (
-    <div className="flex flex-col flex-1 min-h-0">
+    <div className="flex flex-col h-full min-h-0 overflow-hidden">
       <Header
         gameLive={gameLive}
         gameResult={gameResult}
@@ -123,7 +129,10 @@ const App: React.FC = () => {
         startGame={startGame}
         campaignComplete={campaignComplete}
       />
-      <div className="bg-canvas relative flex-1 min-h-0">
+      <div
+        id="game-stage"
+        className="bg-canvas relative flex-1 min-h-0 overflow-hidden"
+      >
         <div className="sr-only">
           <CircleSettings setSettings={setSettings} />
         </div>

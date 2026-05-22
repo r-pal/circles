@@ -18,7 +18,6 @@ import {
   THEME_CYCLE_MS,
 } from "../constants/themes";
 import {
-  rotationForThemeIndex,
   segmentProgressFromRotation,
   themeIdFromRotation,
 } from "../theme/wheelTheme";
@@ -31,7 +30,6 @@ const DEG_PER_MS = 360 / FULL_CYCLE_MS;
 type ThemeContextValue = {
   theme: Theme;
   themeId: ThemeId;
-  setThemeId: (id: ThemeId, options?: { preserveWheel?: boolean }) => void;
   themeOrder: ThemeId[];
   segmentProgress: number;
   cycleRotationDeg: number;
@@ -53,8 +51,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   );
   const totalPausedMsRef = useRef(0);
   const pauseStartedRef = useRef<number | null>(null);
-  /** Game/level theme pick: keep colours until the wheel reaches that sector */
-  const manualThemeRef = useRef<ThemeId | null>(null);
   const [themeId, setThemeIdState] = useState<ThemeId>(initialId);
   const [segmentProgress, setSegmentProgress] = useState(0);
   const [cycleRotationDeg, setCycleRotationDeg] = useState(
@@ -75,17 +71,8 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     (now: number) => {
       const elapsed = elapsedMs(now);
       const rotation = (((elapsed * DEG_PER_MS) % 360) + 360) % 360;
-      const wheelId = themeIdFromRotation(rotation);
+      const id = themeIdFromRotation(rotation);
       const progress = segmentProgressFromRotation(rotation);
-      let id = wheelId;
-      const manual = manualThemeRef.current;
-      if (manual !== null) {
-        if (wheelId === manual) {
-          manualThemeRef.current = null;
-        } else {
-          id = manual;
-        }
-      }
 
       setCycleRotationDeg(rotation);
       setThemeIdState(id);
@@ -119,37 +106,10 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     return () => cancelAnimationFrame(frame);
   }, [syncFromClock]);
 
-  const setThemeId = useCallback(
-    (id: ThemeId, options?: { preserveWheel?: boolean }) => {
-      localStorage.setItem(STORAGE_KEY, id);
-
-      if (options?.preserveWheel) {
-        manualThemeRef.current = id;
-        setThemeIdState(id);
-        return;
-      }
-
-      manualThemeRef.current = null;
-      const index = THEME_ORDER.indexOf(id);
-      const now = performance.now();
-      cycleStartRef.current = now - index * THEME_CYCLE_MS;
-      totalPausedMsRef.current = 0;
-      if (pauseStartedRef.current !== null) {
-        pauseStartedRef.current = now;
-      }
-      const rotation = rotationForThemeIndex(index);
-      setCycleRotationDeg(rotation);
-      setThemeIdState(id);
-      setSegmentProgress(0);
-    },
-    []
-  );
-
   const value = useMemo(
     () => ({
       theme,
       themeId,
-      setThemeId,
       themeOrder: THEME_ORDER,
       segmentProgress,
       cycleRotationDeg,
@@ -159,7 +119,6 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     [
       theme,
       themeId,
-      setThemeId,
       segmentProgress,
       cycleRotationDeg,
       cyclePaused,
