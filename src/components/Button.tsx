@@ -19,14 +19,16 @@ const Button: React.FC<ButtonProps> = ({
 }) => (
   <button
     className={clsx(
-      "text-sm focus:ring-cyan-500 text-[#3A3042] hover:bg-[#EDFFD9]/50 p-1 rounded",
-      variant ? "text-[#EDFFD9]" : " bg-[#EDFFD9]"
+      "text-sm p-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
+      variant
+        ? "text-foreground hover:bg-foreground/10"
+        : "bg-btn-fill text-btn-text hover:opacity-90"
     )}
     form={form}
     type={type}
     disabled={disabled}
   >
-    {header ? <h1 className="text-[#3A3042]  xl:text-4xl">{text}</h1> : text}
+    {header ? <h1 className="text-btn-text xl:text-4xl">{text}</h1> : text}
   </button>
 );
 

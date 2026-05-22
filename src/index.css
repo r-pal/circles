@@ -1,18 +1,34 @@
 /* Header font */
-@import url('https://fonts.googleapis.com/css2?family=Tilt+Prism&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Tilt+Prism&display=swap");
 
 @tailwind base;
 
+/* Fallback until ThemeShell mounts (Sea) */
+:root {
+  --theme-canvas: #315964;
+  --theme-surface: #3a3042;
+  --theme-foreground: #edffd9;
+  --theme-accent: #ff784f;
+  --theme-selection: #ff784f;
+  --theme-button-bg: #edffd9;
+  --theme-button-text: #3a3042;
+}
+
 ::selection {
-    background: #FF784F;
-  }
+  background: var(--theme-selection);
+}
+
 @tailwind components;
 @tailwind utilities;
 
-@layer base { 
-    h1 { @apply font-header;
-    } 
-    h2 { @apply font-header;
-    } 
-}
+@layer base {
+  body,
+  #root {
+    @apply font-sans min-h-screen;
+  }
 
+  #theme-root,
+  canvas {
+    background-color: var(--theme-canvas);
+  }
+}

@@ -1,9 +1,27 @@
 import { useCallback, useEffect } from "react";
+import { useLiveSettings } from "../hooks/useLiveSettings";
 import { P5CanvasInstance, ReactP5Wrapper } from "react-p5-wrapper";
-import { canvasHeight, canvasWidth } from "../constants/canvas";
+import { getGameCanvasDimensions } from "../constants/canvas";
+import {
+  createGameCanvas,
+  drawSettingsCircle,
+  growScaleOnCircleClick,
+  isPointerOverCircle,
+  MAX_CLICK_SCALE,
+  MOTION_TRAIL_STEPS,
+  resizeGameCanvasToLayout,
+  runMotionTrailFrame,
+  TRAIL_FADE_ALPHA_LONG,
+} from "../utils";
 import { Settings } from "./CircleSettings";
 
-//TODO: estimate wait time based on screen size
+const BLOCK_SIZE = 10;
+const BASE_DECAY_MS = 6000;
+const WIN_COVERAGE = 0.9;
+const WIN_HOLD_MS = 3000;
+const GAME_TIME_MS = 90000;
+const REFERENCE_SCREEN_MIN = 720;
+const NEVER_PAINTED = -1;
 
 type Level03Props = {
   settings: Settings;
@@ -18,95 +36,197 @@ const Level03: React.FC<Level03Props> = ({
   setGameLive,
   setMessage,
 }) => {
-  const j = settings.jiggliness;
-  const r = settings.radius;
+  const settingsRef = useLiveSettings(settings);
+
   useEffect(() => {
-    setMessage("Large screen = large wait");
-  }, []);
+    setMessage("Click the circle to grow — hold to herd. Keep 90% painted.");
+  }, [setMessage]);
 
   const sketch = useCallback(
     (s: P5CanvasInstance) => {
-      let x: number;
-      let y: number;
-      // Initialize visitedPixels as a 2D array with the same size as the canvas.
-      // block size is 10 pixels to speed up process
-      let visitedPixels: boolean[][];
-      const blockSize = 10;
-      visitedPixels = Array(Math.ceil(canvasWidth / blockSize))
-        .fill(false)
-        .map(() => Array(Math.ceil(canvasHeight / blockSize)).fill(false));
+      const live = () => settingsRef.current;
+      let x = 0;
+      let y = 0;
+      let blockPaintTime: number[][] = [];
+      let cols = 0;
+      let rows = 0;
+      let aboveThresholdSince = 0;
+      let gameStartMs = 0;
+      let gameEnded = false;
+      let sizeScale = 1;
 
-      s.setup = () => {
-        s.createCanvas(canvasWidth, canvasHeight);
-        x = Math.round(s.random(0, s.width));
-        y = Math.round(s.random(0, s.height));
+      const initGrid = () => {
+        cols = Math.ceil(s.width / BLOCK_SIZE);
+        rows = Math.ceil(s.height / BLOCK_SIZE);
+        blockPaintTime = Array(cols)
+          .fill(NEVER_PAINTED)
+          .map(() => Array(rows).fill(NEVER_PAINTED));
       };
 
-      s.windowResized = () => {
-        s.resizeCanvas(s.windowWidth, s.windowHeight);
-      };
+      const screenScale = () =>
+        Math.max(1, Math.min(s.width, s.height) / REFERENCE_SCREEN_MIN);
 
-      s.draw = () => {
-        s.ellipse(x, y, r * 2, r * 2);
-        s.fill(settings.colour1);
-        s.stroke(settings.colour2);
+      const decayMs = () => BASE_DECAY_MS * screenScale();
 
-        // move the circle, and loop around the canvas
-        x = x + 5;
-        y = y - 5;
-        if (x > s.width) x = 0;
-        if (y > s.height) y = 0;
-        if (x < 0) x = s.width;
-        if (y < 0) y = s.height;
+      const isBlockPainted = (paintTime: number, now: number) =>
+        paintTime >= 0 && now - paintTime < decayMs();
 
-        // Jiggle the circle.
-        x = x + s.random(-j, j);
-        y = y + s.random(-j, j);
+      const baseRadius = () => live().radius * screenScale();
 
-        // Ensure x and y are within the canvas bounds.
-        const currentPixelX = Math.min(
-          Math.max(Math.round(x), 0),
-          canvasWidth - 1
-        );
-        const currentPixelY = Math.min(
-          Math.max(Math.round(y), 0),
-          canvasHeight - 1
-        );
+      const paintBlocks = (cx: number, cy: number, radius: number, now: number) => {
+        const px = Math.round(cx);
+        const py = Math.round(cy);
+        const r = Math.floor(radius);
 
-        // Iterate over the circle's area.
         for (let i = -r; i <= r; i++) {
-          for (let j = -r; j <= r; j++) {
-            // Calculate the actual coordinates of the pixel.
-            const pixelX = currentPixelX + i;
-            const pixelY = currentPixelY + j;
+          for (let k = -r; k <= r; k++) {
+            if (i * i + k * k > radius * radius) continue;
 
-            // Check if the pixel is within the circle and the canvas.
+            const pixelX = px + i;
+            const pixelY = py + k;
             if (
-              i * i + j * j <= r * r &&
-              pixelX >= 0 &&
-              pixelX < canvasWidth &&
-              pixelY >= 0 &&
-              pixelY < canvasHeight
+              pixelX < 0 ||
+              pixelX >= s.width ||
+              pixelY < 0 ||
+              pixelY >= s.height
             ) {
-              // Mark the pixel as visited.
-              visitedPixels[Math.floor(pixelX / blockSize)][
-                Math.floor(pixelY / blockSize)
-              ] = true;
+              continue;
+            }
+
+            const col = Math.floor(pixelX / BLOCK_SIZE);
+            const row = Math.floor(pixelY / BLOCK_SIZE);
+            if (col < cols && row < rows) {
+              blockPaintTime[col][row] = now;
             }
           }
         }
+      };
 
-        // Check if all pixels have been visited.
-        const allVisited = visitedPixels.every((row) => row.every(Boolean));
+      const getCoverage = (now: number) => {
+        let painted = 0;
+        const total = cols * rows;
+        if (total === 0) return 0;
 
-        if (allVisited) {
-          setGameResult("won");
-          setGameLive(false);
-          setMessage("");
+        for (let col = 0; col < cols; col++) {
+          for (let row = 0; row < rows; row++) {
+            if (isBlockPainted(blockPaintTime[col][row], now)) {
+              painted++;
+            }
+          }
+        }
+        return painted / total;
+      };
+
+      const endGame = (result: "won" | "lost") => {
+        if (gameEnded) return;
+        gameEnded = true;
+        setGameResult(result);
+        setGameLive(false);
+        setMessage("");
+        s.noLoop();
+      };
+
+      s.setup = () => {
+        const { width, height } = getGameCanvasDimensions();
+        createGameCanvas(s, width, height);
+        initGrid();
+        gameStartMs = s.millis();
+        x = s.random(0, s.width);
+        y = s.random(0, s.height);
+      };
+
+      s.windowResized = () => {
+        resizeGameCanvasToLayout(s);
+        initGrid();
+      };
+
+      s.mousePressed = () => {
+        if (gameEnded) return;
+        const radius = baseRadius() * sizeScale;
+        sizeScale = growScaleOnCircleClick(s, x, y, radius, sizeScale);
+
+        const dx = s.mouseX - x;
+        const dy = s.mouseY - y;
+        const dist = Math.hypot(dx, dy) || 1;
+        const nudge = 60 * screenScale();
+        x += (dx / dist) * nudge;
+        y += (dy / dist) * nudge;
+        x = s.constrain(x, 0, s.width);
+        y = s.constrain(y, 0, s.height);
+      };
+
+      s.draw = () => {
+        if (gameEnded) return;
+
+        const now = s.millis();
+        const holding = s.mouseIsPressed;
+        const radius = baseRadius() * sizeScale;
+        const speed =
+          5 + ((sizeScale - 1) / (MAX_CLICK_SCALE - 1)) * 2.5;
+
+        const stepSpeed = speed / MOTION_TRAIL_STEPS;
+        const herdFactor = holding ? 1.2 / MOTION_TRAIL_STEPS : 0;
+
+        runMotionTrailFrame(
+          s,
+          () => {
+            drawSettingsCircle(s, x, y, radius * 2, live());
+
+            x += stepSpeed;
+            y -= stepSpeed;
+            if (x > s.width) x = 0;
+            if (y < 0) y = s.height;
+            if (x < 0) x = s.width;
+            if (y > s.height) y = 0;
+
+            if (holding) {
+              const dx = s.mouseX - x;
+              const dy = s.mouseY - y;
+              const dist = Math.hypot(dx, dy) || 1;
+              x += (dx / dist) * speed * herdFactor;
+              y += (dy / dist) * speed * herdFactor;
+            }
+
+            const j = live().jiggliness;
+            x += s.random(-j, j);
+            y += s.random(-j, j);
+            x = s.constrain(x, 0, s.width);
+            y = s.constrain(y, 0, s.height);
+          },
+          { alpha: TRAIL_FADE_ALPHA_LONG }
+        );
+
+        paintBlocks(x, y, radius, now);
+
+        if (isPointerOverCircle(s, x, y, radius)) {
+          s.cursor("pointer");
+        } else {
+          s.cursor(holding ? "grabbing" : "default");
+        }
+
+        const coverage = getCoverage(now);
+
+        if (coverage >= WIN_COVERAGE) {
+          if (aboveThresholdSince === 0) aboveThresholdSince = now;
+          if (now - aboveThresholdSince >= WIN_HOLD_MS) {
+            endGame("won");
+            return;
+          }
+        } else {
+          aboveThresholdSince = 0;
+        }
+
+        const elapsed = now - gameStartMs;
+        if (elapsed > 2000 && coverage === 0) {
+          endGame("lost");
+          return;
+        }
+        if (elapsed >= GAME_TIME_MS) {
+          endGame("lost");
         }
       };
     },
-    [settings, setGameResult, setGameLive, setMessage]
+    [settingsRef, setGameResult, setGameLive, setMessage]
   );
 
   return <ReactP5Wrapper sketch={sketch} />;

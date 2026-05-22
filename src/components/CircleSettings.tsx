@@ -27,7 +27,7 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({ setSettings }) => {
   return (
     <div>
       <form id="settings" onSubmit={handleSubmit(onSubmit)}>
-        <div className="w-full flex flex-col items-left gap-3 text-nyanza border-nyanza accent-nyanza">
+        <div className="w-full flex flex-col items-left gap-3 text-foreground border-foreground accent-accent">
           <div>
             Size
             <input

@@ -1,9 +1,18 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import App from './components/App';
+import React from "react";
+import { render, screen } from "@testing-library/react";
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+jest.mock("react-p5-wrapper", () => ({
+  ReactP5Wrapper: () => null,
+}));
+
+import App from "./components/App";
+import { ThemeProvider } from "./context/ThemeContext";
+
+test("renders game title", () => {
+  render(
+    <ThemeProvider>
+      <App />
+    </ThemeProvider>
+  );
+  expect(screen.getByText(/CIRCLES/i)).toBeInTheDocument();
 });

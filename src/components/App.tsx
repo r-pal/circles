@@ -1,58 +1,129 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import clsx from "clsx";
 import CircleSettings, { Settings } from "./CircleSettings";
 import Game from "./Game";
 import Header from "./Header";
+import LevelAdviceFooter from "./LevelAdviceFooter";
 import Level00 from "./Level00";
+import { useTheme } from "../context/ThemeContext";
+import { setGameCanvasLayout } from "../constants/canvas";
+import { pickRandomThemeId, type ThemeId } from "../constants/themes";
+import { formatRunTime, RUN_TIMER_TICK_MS, totalRunTicks } from "../utils";
+
+const MAX_LEVEL = 4;
 
 const App: React.FC = () => {
+  const { theme, themeId, setThemeId } = useTheme();
+  const previousLevelThemeRef = useRef<ThemeId | null>(null);
   const [gameResult, setGameResult] = useState<"won" | "lost" | undefined>(
     undefined
   );
   const [gameLive, setGameLive] = useState(false);
   const [settings, setSettings] = useState<Settings>({
     radius: 60,
-    colour1: "#3A3042",
-    colour2: "#EDFFD9",
+    colour1: theme.defaultCircle.colour1,
+    colour2: theme.defaultCircle.colour2,
     jiggliness: 3,
   });
   const [level, setLevel] = useState(1);
   const [message, setMessage] = useState("");
   const [timeElapsed, setTimeElapsed] = useState(0);
+  const [levelSplits, setLevelSplits] = useState<number[]>([]);
 
-  const startGame = () => {
-    if (gameLive === false) {
-      setGameResult(undefined);
-      setGameLive(true);
-    }
-    return;
+  useEffect(() => {
+    setSettings((prev) => ({
+      ...prev,
+      colour1: theme.defaultCircle.colour1,
+      colour2: theme.defaultCircle.colour2,
+    }));
+  }, [themeId, theme.defaultCircle.colour1, theme.defaultCircle.colour2]);
+
+  const resetRun = () => {
+    setTimeElapsed(0);
+    setLevelSplits([]);
+    previousLevelThemeRef.current = null;
   };
 
   useEffect(() => {
-    if (gameResult === "won") {
-      setLevel(level + 1);
+    if (!gameLive) return;
+
+    const exclude = previousLevelThemeRef.current ?? undefined;
+    const next = pickRandomThemeId(exclude);
+    previousLevelThemeRef.current = next;
+    setThemeId(next);
+  }, [gameLive, level, setThemeId]);
+
+  const startGame = useCallback(() => {
+    if (gameLive) return;
+
+    const wasLost = gameResult === "lost";
+    const campaignComplete =
+      gameResult === "won" &&
+      level >= MAX_LEVEL &&
+      levelSplits.length >= MAX_LEVEL;
+    const freshStart =
+      gameResult === undefined && level === 1 && levelSplits.length === 0;
+
+    setGameResult(undefined);
+
+    if (wasLost || campaignComplete) {
+      setLevel(1);
+      resetRun();
+    } else if (freshStart) {
+      resetRun();
     }
-  }, [gameResult]);
+
+    setGameLive(true);
+  }, [gameLive, gameResult, level, levelSplits.length]);
+
+  useEffect(() => {
+    if (gameResult !== "won") return;
+
+    setLevelSplits((prev) => {
+      const priorTotal = totalRunTicks(prev);
+      return [...prev, timeElapsed - priorTotal];
+    });
+    setLevel((l) => (l < MAX_LEVEL ? l + 1 : l));
+  }, [gameResult, timeElapsed]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout | undefined;
     if (gameLive) {
-      interval = setInterval(() => setTimeElapsed((prev) => prev + 1), 100);
-    } else {
-      clearInterval(interval);
+      interval = setInterval(
+        () => setTimeElapsed((prev) => prev + 1),
+        RUN_TIMER_TICK_MS
+      );
     }
     return () => clearInterval(interval);
   }, [gameLive]);
 
+  const runTotal = totalRunTicks(levelSplits);
+  const lastSplit = levelSplits[levelSplits.length - 1];
+  const campaignComplete =
+    gameResult === "won" && levelSplits.length >= MAX_LEVEL;
+  const showSplits = campaignComplete && levelSplits.length > 0;
+
+  const showLevelAdvice = gameLive && message.length > 0;
+
+  useEffect(() => {
+    setGameCanvasLayout({ mobileAdviceFooterVisible: showLevelAdvice });
+    requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
+  }, [showLevelAdvice]);
+
   return (
-    <>
+    <div className="flex flex-col flex-1 min-h-0">
       <Header
         gameLive={gameLive}
         gameResult={gameResult}
         level={level}
         message={message}
         startGame={startGame}
+        campaignComplete={campaignComplete}
       />
-      <div className="bg-[#315964] relative">
+      <div className="bg-canvas relative flex-1 min-h-0">
+        <div className="sr-only">
+          <CircleSettings setSettings={setSettings} />
+        </div>
         <div>
           {gameLive ? (
             <>
@@ -63,26 +134,70 @@ const App: React.FC = () => {
                 level={level}
                 setMessage={setMessage}
               />
-              <div className="absolute left-10 bottom-10 -translate-y-1/2 z-50 ">
-                <h1 className="text-[#EDFFD9] text-5xl md:text-7xl pointer-events-none select-none">
-                  {timeElapsed}
-                </h1>
+              <div
+                className={clsx(
+                  "absolute left-4 md:left-10 z-50 pointer-events-none select-none -translate-y-1/2",
+                  showLevelAdvice ? "bottom-20 md:bottom-10" : "bottom-10"
+                )}
+              >
+                <p className="text-foreground text-5xl md:text-7xl leading-none">
+                  {formatRunTime(timeElapsed)}
+                </p>
+                <p className="text-foreground/80 text-xl md:text-2xl mt-1">
+                  Level {level}
+                </p>
               </div>
             </>
           ) : (
             <>
               <Level00 settings={settings} startGame={startGame} />
-              <div className="absolute top-1/2 inset-0 flex justify-center z-50 ">
-                <h1 className="text-[#EDFFD9] text-7xl md:text-9xl pointer-events-none select-none">
-                  {gameResult === "won" && "WINNER" && timeElapsed}
-                  {gameResult === "lost" && "YOU LOSE"}
-                </h1>
+              <div className="absolute top-1/2 inset-0 flex flex-col items-center justify-center z-50 pointer-events-none select-none text-center px-4">
+                {gameResult === "won" && (
+                  <>
+                    <h1 className="text-foreground text-7xl md:text-9xl">
+                      WINNER
+                    </h1>
+                    {lastSplit !== undefined && (
+                      <p className="text-foreground text-2xl md:text-4xl mt-4">
+                        Level {levelSplits.length}: {formatRunTime(lastSplit)}
+                      </p>
+                    )}
+                    <p className="text-foreground text-3xl md:text-5xl mt-2">
+                      Total: {formatRunTime(runTotal || timeElapsed)}
+                    </p>
+                    {showSplits && (
+                      <ul className="text-foreground/90 text-lg md:text-2xl mt-6 space-y-1">
+                        {levelSplits.map((split, i) => (
+                          <li key={i}>
+                            Level {i + 1}: {formatRunTime(split)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </>
+                )}
+                {gameResult === "lost" && (
+                  <>
+                    <h1 className="text-coral text-7xl md:text-9xl">
+                      YOU LOSE
+                    </h1>
+                    <p className="text-foreground text-2xl md:text-4xl mt-4">
+                      Time: {formatRunTime(timeElapsed)}
+                    </p>
+                    {levelSplits.length > 0 && (
+                      <p className="text-foreground/80 text-lg md:text-xl mt-2">
+                        Best total so far: {formatRunTime(runTotal)}
+                      </p>
+                    )}
+                  </>
+                )}
               </div>
             </>
           )}
         </div>
       </div>
-    </>
+      <LevelAdviceFooter message={message} visible={showLevelAdvice} />
+    </div>
   );
 };
 

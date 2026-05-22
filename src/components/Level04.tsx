@@ -1,7 +1,17 @@
 import { useCallback, useEffect } from "react";
+import { useLiveSettings } from "../hooks/useLiveSettings";
 import { P5CanvasInstance, ReactP5Wrapper } from "react-p5-wrapper";
-import { canvasHeight, canvasWidth } from "../constants/canvas";
+import { getGameCanvasDimensions } from "../constants/canvas";
+import {
+  createGameCanvas,
+  MOTION_TRAIL_STEPS,
+  resizeGameCanvasToLayout,
+  runMotionTrailFrame,
+} from "../utils";
 import { Settings } from "./CircleSettings";
+
+const MIN_DIAMETER = 10;
+const GROW_PER_CLICK = 55;
 
 type Level04Props = {
   settings: Settings;
@@ -16,81 +26,130 @@ const Level04: React.FC<Level04Props> = ({
   setGameLive,
   setMessage,
 }) => {
-  const r = settings.radius;
+  const settingsRef = useLiveSettings(settings);
 
   useEffect(() => {
-    setMessage("Large screen = large wait");
-  }, []);
+    setMessage("Left half grows — right half shrinks");
+  }, [setMessage]);
 
   const sketch = useCallback(
     (s: P5CanvasInstance) => {
+      const live = () => settingsRef.current;
       let x: number;
       let y: number;
       let angle = 0;
       let spiralRadius = 0;
+      let diameter = live().radius * 2;
 
       const blockSize = 10;
-      const visitedPixels = Array(Math.ceil(canvasWidth / blockSize))
-        .fill(false)
-        .map(() => Array(Math.ceil(canvasHeight / blockSize)).fill(false));
+      let visitedPixels: boolean[][] = [];
+
+      const radius = () => diameter / 2;
+
+      const initVisited = () => {
+        const cols = Math.ceil(s.width / blockSize);
+        const rows = Math.ceil(s.height / blockSize);
+        visitedPixels = Array(cols)
+          .fill(false)
+          .map(() => Array(rows).fill(false));
+      };
+
+      const isOnCircle = () => {
+        const r = radius();
+        return s.dist(s.mouseX, s.mouseY, x, y) < r;
+      };
+
+      const drawSplitCircle = (cx: number, cy: number, d: number) => {
+        const { colour1, colour2 } = live();
+        const r = d / 2;
+        s.noStroke();
+        s.fill(colour1);
+        s.arc(cx, cy, d, d, s.HALF_PI, 3 * s.HALF_PI);
+        s.fill(colour2);
+        s.arc(cx, cy, d, d, -s.HALF_PI, s.HALF_PI);
+        s.stroke(colour2);
+        s.strokeWeight(Math.max(2, d * 0.02));
+        s.line(cx, cy - r, cx, cy + r);
+      };
+
+      const advanceSpiral = (fraction: number) => {
+        angle += 0.1 * fraction;
+
+        if (x <= 0 || x >= s.width || y <= 0 || y >= s.height) {
+          spiralRadius -= 0.5 * fraction;
+          if (spiralRadius <= 0) {
+            spiralRadius = 0;
+          }
+        } else {
+          spiralRadius += 0.5 * fraction;
+        }
+
+        x = s.width / 2 + spiralRadius * Math.cos(angle);
+        y = s.height / 2 + spiralRadius * Math.sin(angle);
+        x = Math.min(Math.max(x, 0), s.width - 1);
+        y = Math.min(Math.max(y, 0), s.height - 1);
+      };
 
       s.setup = () => {
-        s.createCanvas(canvasWidth, canvasHeight);
-        // Initialize the circle at the center of the canvas
+        const { width, height } = getGameCanvasDimensions();
+        createGameCanvas(s, width, height);
+        initVisited();
         x = s.width / 2;
         y = s.height / 2;
       };
 
       s.windowResized = () => {
-        s.resizeCanvas(s.windowWidth, s.windowHeight);
+        resizeGameCanvasToLayout(s);
+        initVisited();
+      };
+
+      s.mousePressed = () => {
+        if (!isOnCircle()) return;
+
+        if (s.mouseX < x) {
+          diameter += GROW_PER_CLICK;
+        } else {
+          diameter = Math.max(MIN_DIAMETER, diameter - GROW_PER_CLICK);
+        }
       };
 
       s.draw = () => {
-        s.ellipse(x, y, r * 2, r * 2);
-        s.fill(settings.colour1);
-        s.stroke(settings.colour2);
+        const r = radius();
+        const stepFraction = 1 / MOTION_TRAIL_STEPS;
 
-        angle += 0.1;
+        runMotionTrailFrame(s, () => {
+          drawSplitCircle(x, y, diameter);
+          advanceSpiral(stepFraction);
+        });
 
-        if (x <= 0 || x >= canvasWidth || y <= 0 || y >= canvasHeight) {
-          spiralRadius -= 0.5;
-          if (spiralRadius <= 0) {
-            spiralRadius = 0;
-          }
-        } else {
-          spiralRadius += 0.5;
-        }
-
-        x = s.width / 2 + spiralRadius * Math.cos(angle);
-        y = s.height / 2 + spiralRadius * Math.sin(angle);
-
-        // ensure x and y are within the canvas bounds
-        x = Math.min(Math.max(x, 0), canvasWidth - 1);
-        y = Math.min(Math.max(y, 0), canvasHeight - 1);
-
-        // Iterate over the circle's area.
-        for (let i = -r; i <= r; i++) {
-          for (let j = -r; j <= r; j++) {
+        const ri = Math.floor(r);
+        for (let i = -ri; i <= ri; i++) {
+          for (let j = -ri; j <= ri; j++) {
             const pixelX = Math.round(x) + i;
             const pixelY = Math.round(y) + j;
 
-            // Check if the pixel is within the circle and the canvas.
             if (
               i * i + j * j <= r * r &&
               pixelX >= 0 &&
-              pixelX < canvasWidth &&
+              pixelX < s.width &&
               pixelY >= 0 &&
-              pixelY < canvasHeight
+              pixelY < s.height
             ) {
-              // Mark the pixel as visited.
-              visitedPixels[Math.floor(pixelX / blockSize)][
-                Math.floor(pixelY / blockSize)
-              ] = true;
+              const col = Math.floor(pixelX / blockSize);
+              const row = Math.floor(pixelY / blockSize);
+              if (visitedPixels[col]?.[row] !== undefined) {
+                visitedPixels[col][row] = true;
+              }
             }
           }
         }
 
-        // Check if all pixels have been visited.
+        if (isOnCircle()) {
+          s.cursor("pointer");
+        } else {
+          s.cursor("default");
+        }
+
         const allVisited = visitedPixels.every((row) => row.every(Boolean));
 
         if (allVisited) {
@@ -100,7 +159,7 @@ const Level04: React.FC<Level04Props> = ({
         }
       };
     },
-    [settings, setGameResult, setGameLive, setMessage]
+    [settingsRef, setGameResult, setGameLive, setMessage]
   );
 
   return <ReactP5Wrapper sketch={sketch} />;

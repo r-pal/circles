@@ -46,7 +46,8 @@ const Game: React.FC<GameProps> = ({
     />,
   ];
 
-  return <>{levels[level - 1]}</>;
+  const index = Math.min(Math.max(level, 1), levels.length) - 1;
+  return <>{levels[index]}</>;
 };
 
 export default Game;

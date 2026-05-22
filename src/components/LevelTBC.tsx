@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { P5CanvasInstance, ReactP5Wrapper } from "react-p5-wrapper";
-import { canvasHeight, canvasWidth } from "../constants/canvas";
+import { getGameCanvasDimensions } from "../constants/canvas";
 import { Settings } from "./CircleSettings";
 
 // NB level ideas
@@ -61,7 +61,8 @@ const LevelTBC: React.FC<LevelTBCProps> = ({
       let colour2 = settings.colour2;
 
       s.setup = () => {
-        s.createCanvas(canvasWidth, canvasHeight);
+        const { width, height } = getGameCanvasDimensions();
+        s.createCanvas(width, height);
         x = Math.round(s.random(0, s.width));
         y = Math.round(s.random(0, s.height));
       };
@@ -151,8 +152,8 @@ const LevelTBC: React.FC<LevelTBCProps> = ({
           x = x - 1;
         }
 
-        let xPixels = canvasWidth;
-        let yPixels = canvasHeight;
+        let xPixels = s.width;
+        let yPixels = s.height;
       };
 
       s.mousePressed = () => {
@@ -179,7 +180,7 @@ export default LevelTBC;
 
 // import { useCallback, useEffect, useState } from "react";
 // import { P5CanvasInstance, ReactP5Wrapper } from "react-p5-wrapper";
-// import { canvasHeight, canvasWidth } from "../constants/canvas";
+// import { getGameCanvasDimensions } from "../constants/canvas";
 // import { Settings } from "./CircleSettings";
 
 // type Level03Props = {

@@ -1,7 +1,14 @@
 import { P5CanvasInstance, ReactP5Wrapper } from "react-p5-wrapper";
-import { canvasWidth, canvasHeight } from "../constants/canvas";
+import { getGameCanvasDimensions } from "../constants/canvas";
+import {
+  createGameCanvas,
+  drawSettingsCircle,
+  resizeGameCanvasToLayout,
+  runMotionTrailFrame,
+} from "../utils";
 import { Settings } from "./CircleSettings";
 import { useCallback } from "react";
+import { useLiveSettings } from "../hooks/useLiveSettings";
 
 type Level01Props = {
   settings: Settings;
@@ -16,51 +23,48 @@ const Level01: React.FC<Level01Props> = ({
   setGameLive,
   setMessage,
 }) => {
-  const diameter = settings.radius * 2;
-  const j = settings.jiggliness;
+  const settingsRef = useLiveSettings(settings);
 
   const sketch = useCallback(
     (s: P5CanvasInstance) => {
       let x: number;
       let y: number;
+      const live = () => settingsRef.current;
       const isCursorInsideCircle = () => {
-        let d = s.dist(s.mouseX, s.mouseY, x, y);
-        return d < diameter / 2;
+        const d = s.dist(s.mouseX, s.mouseY, x, y);
+        return d < live().radius;
       };
       setMessage("The circle wants clicks");
       s.setup = () => {
-        s.createCanvas(canvasWidth, canvasHeight);
+        const { width, height } = getGameCanvasDimensions();
+        createGameCanvas(s, width, height);
         x = s.random(0, s.width);
-        y = s.random(s.height / 2, s.height / 3);
+        y = s.random(s.height / 3, s.height / 2);
       };
 
+      s.windowResized = () => resizeGameCanvasToLayout(s);
+
       s.draw = () => {
-        s.background(50, 89, 100);
-        for (let i = 0; i < 6; i++) {
-          s.ellipse(x, y, diameter, diameter);
-          s.fill(settings.colour1);
-          s.stroke(settings.colour2);
-          // jiggling
-          x = x + s.random(-j, j);
-          y = y + s.random(-j, j);
-          // lose condition
+        const { radius, jiggliness } = live();
+        runMotionTrailFrame(s, () => {
+          drawSettingsCircle(s, x, y, radius * 2, live());
+          x = x + s.random(-jiggliness, jiggliness);
+          y = y + s.random(-jiggliness, jiggliness);
           if (y < 0) {
             setGameResult("lost");
             setGameLive(false);
             setMessage("");
           }
-          // win condition
           if (y >= s.height) {
             setGameResult("won");
             setGameLive(false);
             setMessage("");
           }
-          // in case it jiggles off screen x-axis:
           if (x < 0) {
             x = s.width;
           }
-          y = y - 1;
-        }
+          y = y - 0.25;
+        });
         if (isCursorInsideCircle()) {
           s.cursor("pointer");
         } else {
@@ -74,7 +78,7 @@ const Level01: React.FC<Level01Props> = ({
         }
       };
     },
-    [settings, setGameResult, setGameLive, setMessage, diameter, j]
+    [settingsRef, setGameResult, setGameLive, setMessage]
   );
 
   return <ReactP5Wrapper sketch={sketch} />;
