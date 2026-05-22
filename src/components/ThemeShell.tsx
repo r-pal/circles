@@ -1,7 +1,10 @@
 import { useEffect, type ReactNode } from "react";
 import type { Theme } from "../constants/themes";
 import { getThemeCssProperties } from "../theme/getThemeCssProperties";
-import { setMotionTrailCanvasBg } from "../utils/p5MotionTrail";
+import {
+  setCircleDrawTheme,
+  setMotionTrailCanvasBg,
+} from "../utils/p5MotionTrail";
 
 type ThemeShellProps = {
   theme: Theme;
@@ -13,6 +16,7 @@ const ThemeShell = ({ theme, children }: ThemeShellProps) => {
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme.id);
     setMotionTrailCanvasBg(theme.canvasRgb);
+    setCircleDrawTheme(theme);
   }, [theme]);
 
   return (

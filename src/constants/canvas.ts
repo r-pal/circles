@@ -1,6 +1,7 @@
 const MD_BREAKPOINT = 768;
 const HEADER_FALLBACK_HEIGHT = 48;
 const FOOTER_FALLBACK_HEIGHT = 48;
+const MIN_CANVAS_SIZE = 50;
 
 export type GameCanvasLayout = {
   mobileAdviceFooterVisible: boolean;
@@ -25,20 +26,35 @@ export const getMobileAdviceFooterHeight = () => {
   return el?.offsetHeight ?? FOOTER_FALLBACK_HEIGHT;
 };
 
-/** Size to the flex middle panel, or viewport minus measured chrome */
+/** Match header width; height from game-stage or viewport minus chrome */
 export const getGameCanvasDimensions = () => {
+  const header = document.getElementById("app-header");
+  const footer = document.getElementById("level-advice-footer");
   const stage = document.getElementById("game-stage");
-  if (stage && stage.clientWidth > 0 && stage.clientHeight > 0) {
-    return {
-      width: stage.clientWidth,
-      height: stage.clientHeight,
-    };
+
+  const width = Math.round(
+    header?.offsetWidth ??
+      stage?.clientWidth ??
+      document.documentElement.clientWidth
+  );
+
+  let height = 0;
+  if (stage) {
+    const rect = stage.getBoundingClientRect();
+    if (rect.height > 0) height = Math.round(rect.height);
   }
 
-  const header = getHeaderHeight();
-  const footer = getMobileAdviceFooterHeight();
+  if (height < MIN_CANVAS_SIZE) {
+    const headerH = header?.offsetHeight ?? HEADER_FALLBACK_HEIGHT;
+    const footerH =
+      footer && footer.offsetHeight > 0
+        ? footer.offsetHeight
+        : getMobileAdviceFooterHeight();
+    height = Math.round(window.innerHeight - headerH - footerH);
+  }
+
   return {
-    width: document.documentElement.clientWidth,
-    height: Math.max(0, window.innerHeight - header - footer),
+    width: Math.max(MIN_CANVAS_SIZE, width),
+    height: Math.max(MIN_CANVAS_SIZE, height),
   };
 };

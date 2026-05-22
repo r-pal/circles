@@ -1,6 +1,9 @@
 import { P5CanvasInstance } from "react-p5-wrapper";
 import { getGameCanvasDimensions } from "../constants/canvas";
 import { Settings } from "../components/CircleSettings";
+import { resolveCircleColors, setCircleDrawTheme } from "./circleColors";
+
+export { setCircleDrawTheme };
 
 /** Canvas fill — updated when the UI theme changes */
 let canvasBg: [number, number, number] = [50, 89, 100];
@@ -55,6 +58,25 @@ export const resizeGameCanvasToLayout = (s: P5CanvasInstance) => {
   resizeGameCanvas(s, width, height);
 };
 
+const MIN_LAYOUT_SIZE = 50;
+
+/** Wait until layout has non-zero size (avoids 0-height canvas on first paint) */
+export const initGameCanvas = (
+  s: P5CanvasInstance,
+  afterCreate?: () => void
+) => {
+  const attempt = () => {
+    const { width, height } = getGameCanvasDimensions();
+    if (width < MIN_LAYOUT_SIZE || height < MIN_LAYOUT_SIZE) {
+      requestAnimationFrame(attempt);
+      return;
+    }
+    createGameCanvas(s, width, height);
+    afterCreate?.();
+  };
+  attempt();
+};
+
 /** Semi-transparent overlay instead of clearing — leaves motion blur trails */
 export const fadeMotionTrail = (
   s: P5CanvasInstance,
@@ -74,9 +96,14 @@ export const drawSettingsCircle = (
   size: number,
   settings: Pick<Settings, "colour1" | "colour2">
 ) => {
-  s.fill(settings.colour1);
-  s.stroke(settings.colour2);
+  const { fill, stroke } = resolveCircleColors(settings);
+
+  s.push();
+  // s.strokeWeight(Math.max(2, size * 0.03));
+  s.stroke(s.color(stroke));
+  s.fill(s.color(fill));
   s.ellipse(x, y, size, size);
+  s.pop();
 };
 
 type MotionTrailOptions = {

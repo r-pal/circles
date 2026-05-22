@@ -4,6 +4,7 @@ export {
   TRAIL_FADE_ALPHA_LONG,
   clearCanvasBackground,
   createGameCanvas,
+  initGameCanvas,
   drawSettingsCircle,
   fadeMotionTrail,
   getMotionTrailCanvasBg,
@@ -11,7 +12,10 @@ export {
   resizeGameCanvasToLayout,
   runMotionTrailFrame,
   setMotionTrailCanvasBg,
+  setCircleDrawTheme,
 } from "./p5MotionTrail";
+
+export { resolveCircleColors } from "./circleColors";
 
 export {
   CLICK_GROW_STEP,

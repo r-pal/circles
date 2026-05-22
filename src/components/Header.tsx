@@ -58,7 +58,7 @@ const Header: React.FC<HeaderProps> = ({
               }
             }}
           >
-            <Button form="settings" type="submit" text={label!} header />
+            <Button type="button" text={label!} header />
           </div>
         )}
       </div>

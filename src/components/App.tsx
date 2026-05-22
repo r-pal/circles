@@ -21,7 +21,7 @@ const App: React.FC = () => {
   const [settings, setSettings] = useState<Settings>({
     radius: 60,
     colour1: theme.defaultCircle.colour1,
-    colour2: theme.defaultCircle.colour2,
+    colour2: theme.defaultCircle.colour2 || theme.defaultCircle.colour1,
     jiggliness: 3,
   });
   const [level, setLevel] = useState(1);
@@ -33,7 +33,7 @@ const App: React.FC = () => {
     setSettings((prev) => ({
       ...prev,
       colour1: theme.defaultCircle.colour1,
-      colour2: theme.defaultCircle.colour2,
+      colour2: theme.defaultCircle.colour2 || theme.defaultCircle.colour1,
     }));
   }, [themeId, theme.defaultCircle.colour1, theme.defaultCircle.colour2]);
 

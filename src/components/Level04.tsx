@@ -6,12 +6,13 @@ import {
   createGameCanvas,
   MOTION_TRAIL_STEPS,
   resizeGameCanvasToLayout,
+  resolveCircleColors,
   runMotionTrailFrame,
 } from "../utils";
 import { Settings } from "./CircleSettings";
 
 const MIN_DIAMETER = 10;
-const GROW_PER_CLICK = 55;
+const GROW_PER_CLICK = 100;
 
 type Level04Props = {
   settings: Settings;
@@ -29,7 +30,7 @@ const Level04: React.FC<Level04Props> = ({
   const settingsRef = useLiveSettings(settings);
 
   useEffect(() => {
-    setMessage("Left half grows — right half shrinks");
+    setMessage("Left half grows — right half shrinks. Cover the whole screen.");
   }, [setMessage]);
 
   const sketch = useCallback(
@@ -60,14 +61,14 @@ const Level04: React.FC<Level04Props> = ({
       };
 
       const drawSplitCircle = (cx: number, cy: number, d: number) => {
-        const { colour1, colour2 } = live();
+        const { fill, stroke } = resolveCircleColors(live());
         const r = d / 2;
         s.noStroke();
-        s.fill(colour1);
+        s.fill(s.color(fill));
         s.arc(cx, cy, d, d, s.HALF_PI, 3 * s.HALF_PI);
-        s.fill(colour2);
+        s.fill(s.color(stroke));
         s.arc(cx, cy, d, d, -s.HALF_PI, s.HALF_PI);
-        s.stroke(colour2);
+        s.stroke(s.color(stroke));
         s.strokeWeight(Math.max(2, d * 0.02));
         s.line(cx, cy - r, cx, cy + r);
       };

@@ -20,7 +20,8 @@ const CircleSettings: React.FC<CircleSettingsProps> = ({ setSettings }) => {
   const { register, handleSubmit } = useForm<Settings>();
 
   const onSubmit: SubmitHandler<Settings> = (data) => {
-    data.colour2 = secondaryColour(selectedColourHex);
+    data.colour2 =
+      secondaryColour(selectedColourHex) || data.colour1 || selectedColourHex;
     setSettings(data);
   };
 
