@@ -1,36 +1,59 @@
-const MD_BREAKPOINT = 768;
+export const MD_BREAKPOINT = 768;
+export const TABLET_BREAKPOINT = 1024;
+export const SMALL_DESKTOP_BREAKPOINT = 1280;
+export const LARGE_DESKTOP_BREAKPOINT = 1920;
+
+export type ViewportTier =
+  | "mobile"
+  | "tablet"
+  | "smallDesktop"
+  | "largeDesktop"
+  | "xlDesktop";
+
+/** Tier from game canvas width (matches layout breakpoints) */
+export const getViewportTier = (canvasWidthPx: number): ViewportTier => {
+  if (canvasWidthPx < MD_BREAKPOINT) return "mobile";
+  if (canvasWidthPx < TABLET_BREAKPOINT) return "tablet";
+  if (canvasWidthPx < SMALL_DESKTOP_BREAKPOINT) return "smallDesktop";
+  if (canvasWidthPx < LARGE_DESKTOP_BREAKPOINT) return "largeDesktop";
+  return "xlDesktop";
+};
+
+/** Level 3 circle drift speed multiplier per tier */
+export const LEVEL03_MOVEMENT_SPEED: Record<ViewportTier, number> = {
+  mobile: 1,
+  tablet: 1.25,
+  smallDesktop: 1.5,
+  largeDesktop: 1.85,
+  xlDesktop: 2.25,
+};
 const HEADER_FALLBACK_HEIGHT = 48;
 const FOOTER_FALLBACK_HEIGHT = 48;
 const MIN_CANVAS_SIZE = 50;
-
-export type GameCanvasLayout = {
-  mobileAdviceFooterVisible: boolean;
-};
-
-let layout: GameCanvasLayout = { mobileAdviceFooterVisible: false };
-
-export const setGameCanvasLayout = (partial: Partial<GameCanvasLayout>) => {
-  layout = { ...layout, ...partial };
-};
 
 export const getHeaderHeight = () => {
   const el = document.getElementById("app-header");
   return el?.offsetHeight ?? HEADER_FALLBACK_HEIGHT;
 };
 
+/** Height of the mobile level-advice footer when it is in the DOM */
 export const getMobileAdviceFooterHeight = () => {
   if (window.innerWidth >= MD_BREAKPOINT) return 0;
-  if (!layout.mobileAdviceFooterVisible) return 0;
 
   const el = document.getElementById("level-advice-footer");
-  return el?.offsetHeight ?? FOOTER_FALLBACK_HEIGHT;
+  if (!el) return 0;
+  return el.offsetHeight > 0 ? el.offsetHeight : FOOTER_FALLBACK_HEIGHT;
 };
 
-/** Match header width; height from game-stage or viewport minus chrome */
+const getViewportHeight = () =>
+  Math.round(window.visualViewport?.height ?? window.innerHeight);
+
+/** Canvas size: full width, height fits below header and above mobile footer */
 export const getGameCanvasDimensions = () => {
   const header = document.getElementById("app-header");
-  const footer = document.getElementById("level-advice-footer");
   const stage = document.getElementById("game-stage");
+  const headerH = getHeaderHeight();
+  const footerH = getMobileAdviceFooterHeight();
 
   const width = Math.round(
     header?.offsetWidth ??
@@ -38,23 +61,40 @@ export const getGameCanvasDimensions = () => {
       document.documentElement.clientWidth
   );
 
-  let height = 0;
-  if (stage) {
-    const rect = stage.getBoundingClientRect();
-    if (rect.height > 0) height = Math.round(rect.height);
-  }
+  let height = getViewportHeight() - headerH - footerH;
 
-  if (height < MIN_CANVAS_SIZE) {
-    const headerH = header?.offsetHeight ?? HEADER_FALLBACK_HEIGHT;
-    const footerH =
-      footer && footer.offsetHeight > 0
-        ? footer.offsetHeight
-        : getMobileAdviceFooterHeight();
-    height = Math.round(window.innerHeight - headerH - footerH);
+  if (stage) {
+    const stageHeight = Math.round(stage.getBoundingClientRect().height);
+    if (stageHeight > 0) {
+      height = Math.min(height, stageHeight);
+    }
   }
 
   return {
     width: Math.max(MIN_CANVAS_SIZE, width),
     height: Math.max(MIN_CANVAS_SIZE, height),
   };
+};
+
+let layoutResizeQueued = false;
+let lastLayoutWidth = -1;
+let lastLayoutHeight = -1;
+
+/** Debounced window resize for p5 — skips when dimensions are unchanged */
+export const scheduleP5LayoutResize = () => {
+  if (layoutResizeQueued) return;
+  layoutResizeQueued = true;
+  requestAnimationFrame(() => {
+    layoutResizeQueued = false;
+    const { width, height } = getGameCanvasDimensions();
+    if (width === lastLayoutWidth && height === lastLayoutHeight) return;
+    lastLayoutWidth = width;
+    lastLayoutHeight = height;
+    window.dispatchEvent(new Event("resize"));
+  });
+};
+
+export const resetP5LayoutResizeCache = () => {
+  lastLayoutWidth = -1;
+  lastLayoutHeight = -1;
 };

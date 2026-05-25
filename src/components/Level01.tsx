@@ -3,6 +3,8 @@ import {
   drawSettingsCircle,
   initGameCanvas,
   resizeGameCanvasToLayout,
+  hexToRgb,
+  resolveCircleColors,
   runMotionTrailFrame,
 } from "../utils";
 import { Settings } from "./CircleSettings";
@@ -71,6 +73,16 @@ const Level01: React.FC<Level01Props> = ({
             x = s.width;
           }
         });
+
+        const diameter = radius * 2;
+        const { stroke: strokeHex } = resolveCircleColors(live());
+        s.push();
+        s.noStroke();
+        s.fill(...hexToRgb(strokeHex));
+        s.textAlign(s.CENTER, s.CENTER);
+        s.textSize(Math.max(12, diameter * 0.14));
+        s.text("click me", x, y);
+        s.pop();
 
         if (y - radius < 0) {
           setGameResult("lost");

@@ -1,7 +1,7 @@
 import { P5CanvasInstance } from "react-p5-wrapper";
 import { getGameCanvasDimensions } from "../constants/canvas";
 import { Settings } from "../components/CircleSettings";
-import { resolveCircleColors, setCircleDrawTheme } from "./circleColors";
+import { hexToRgb, resolveCircleColors, setCircleDrawTheme } from "./circleColors";
 
 export { setCircleDrawTheme };
 
@@ -43,11 +43,27 @@ export const createGameCanvas = (
   return canvas;
 };
 
+type P5WithRenderer = P5CanvasInstance & {
+  _renderer?: { resize: (w: number, h: number) => void };
+};
+
+/** Resize without p5.resizeCanvas() — it copies every drawingContext key and can throw on read-only props (e.g. serial) */
 export const resizeGameCanvas = (
   s: P5CanvasInstance,
   width: number,
   height: number
 ) => {
+  if (s.width === width && s.height === height) return;
+
+  const renderer = (s as P5WithRenderer)._renderer;
+  if (renderer) {
+    renderer.resize(width, height);
+    s.width = width;
+    s.height = height;
+    clearCanvasBackground(s);
+    return;
+  }
+
   s.resizeCanvas(width, height);
   clearCanvasBackground(s);
 };
@@ -83,9 +99,7 @@ export const fadeMotionTrail = (
   alpha: number = TRAIL_FADE_ALPHA
 ) => {
   s.noStroke();
-  const c = s.color(...canvasBg);
-  c.setAlpha(alpha);
-  s.fill(c);
+  s.fill(canvasBg[0], canvasBg[1], canvasBg[2], alpha);
   s.rect(0, 0, s.width, s.height);
 };
 
@@ -96,12 +110,12 @@ export const drawSettingsCircle = (
   size: number,
   settings: Pick<Settings, "colour1" | "colour2">
 ) => {
-  const { fill, stroke } = resolveCircleColors(settings);
+  const { fill: fillHex, stroke: strokeHex } = resolveCircleColors(settings);
 
   s.push();
   // s.strokeWeight(Math.max(2, size * 0.03));
-  s.stroke(s.color(stroke));
-  s.fill(s.color(fill));
+  s.stroke(...hexToRgb(strokeHex));
+  s.fill(...hexToRgb(fillHex));
   s.ellipse(x, y, size, size);
   s.pop();
 };

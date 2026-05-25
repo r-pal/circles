@@ -15,7 +15,7 @@ export {
   setCircleDrawTheme,
 } from "./p5MotionTrail";
 
-export { resolveCircleColors } from "./circleColors";
+export { hexToRgb, resolveCircleColors } from "./circleColors";
 
 export {
   CLICK_GROW_STEP,

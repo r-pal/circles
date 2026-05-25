@@ -40,8 +40,8 @@ const Header: React.FC<HeaderProps> = ({
         <a href="https://r-pal.github.io/circles">CIRCLES</a>
       </h1>
       <div className="flex flex-1 items-center justify-end gap-2 md:gap-3 min-w-0">
-        {message ? (
-          <p className="hidden md:block flex-1 min-w-0 max-w-xl xl:max-w-2xl text-foreground text-sm lg:text-base text-right leading-snug">
+        {gameLive && message ? (
+          <p className="hidden md:block flex-1 min-w-0 max-w-2xl xl:max-w-3xl text-foreground md:text-xl lg:text-2xl xl:text-3xl text-right leading-snug">
             {message}
           </p>
         ) : null}

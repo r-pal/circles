@@ -12,7 +12,7 @@ const LevelAdviceFooter: React.FC<LevelAdviceFooterProps> = ({
   return (
     <footer
       id="level-advice-footer"
-      className="md:hidden bg-surface border-t border-foreground/15 px-3 py-2.5 text-foreground text-sm text-center select-none shrink-0"
+      className="md:hidden bg-surface border-t border-foreground/15 px-4 py-3 text-foreground text-base leading-snug text-center select-none shrink-0"
       aria-live="polite"
     >
       {message}

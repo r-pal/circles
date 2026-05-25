@@ -6,6 +6,7 @@ import {
   createGameCanvas,
   MOTION_TRAIL_STEPS,
   resizeGameCanvasToLayout,
+  hexToRgb,
   resolveCircleColors,
   runMotionTrailFrame,
 } from "../utils";
@@ -61,14 +62,14 @@ const Level04: React.FC<Level04Props> = ({
       };
 
       const drawSplitCircle = (cx: number, cy: number, d: number) => {
-        const { fill, stroke } = resolveCircleColors(live());
+        const { fill: fillHex, stroke: strokeHex } = resolveCircleColors(live());
         const r = d / 2;
         s.noStroke();
-        s.fill(s.color(fill));
+        s.fill(...hexToRgb(fillHex));
         s.arc(cx, cy, d, d, s.HALF_PI, 3 * s.HALF_PI);
-        s.fill(s.color(stroke));
+        s.fill(...hexToRgb(strokeHex));
         s.arc(cx, cy, d, d, -s.HALF_PI, s.HALF_PI);
-        s.stroke(s.color(stroke));
+        s.stroke(...hexToRgb(strokeHex));
         s.strokeWeight(Math.max(2, d * 0.02));
         s.line(cx, cy - r, cx, cy + r);
       };

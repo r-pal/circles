@@ -1,13 +1,16 @@
 import { useCallback, useEffect } from "react";
 import { useLiveSettings } from "../hooks/useLiveSettings";
 import { P5CanvasInstance, ReactP5Wrapper } from "react-p5-wrapper";
-import { getGameCanvasDimensions } from "../constants/canvas";
+import {
+  getGameCanvasDimensions,
+  getViewportTier,
+  LEVEL03_MOVEMENT_SPEED,
+} from "../constants/canvas";
 import {
   createGameCanvas,
   drawSettingsCircle,
   growScaleOnCircleClick,
   isPointerOverCircle,
-  MAX_CLICK_SCALE,
   MOTION_TRAIL_STEPS,
   resizeGameCanvasToLayout,
   runMotionTrailFrame,
@@ -21,6 +24,7 @@ const WIN_COVERAGE = 0.9;
 const WIN_HOLD_MS = 3000;
 const GAME_TIME_MS = 90000;
 const REFERENCE_SCREEN_MIN = 720;
+const MAX_DIAMETER_WIDTH_FRACTION = 0.5;
 const NEVER_PAINTED = -1;
 
 type Level03Props = {
@@ -66,12 +70,23 @@ const Level03: React.FC<Level03Props> = ({
       const screenScale = () =>
         Math.max(1, Math.min(s.width, s.height) / REFERENCE_SCREEN_MIN);
 
+      const movementSpeedMultiplier = () =>
+        LEVEL03_MOVEMENT_SPEED[getViewportTier(s.width)];
+
       const decayMs = () => BASE_DECAY_MS * screenScale();
 
       const isBlockPainted = (paintTime: number, now: number) =>
         paintTime >= 0 && now - paintTime < decayMs();
 
       const baseRadius = () => live().radius * screenScale();
+
+      /** Max scale so circle diameter reaches 50% of canvas width */
+      const maxSizeScale = () => {
+        const base = baseRadius();
+        if (base <= 0 || s.width <= 0) return 1;
+        const maxRadius = (s.width * MAX_DIAMETER_WIDTH_FRACTION) / 2;
+        return Math.max(1, maxRadius / base);
+      };
 
       const paintBlocks = (cx: number, cy: number, radius: number, now: number) => {
         const px = Math.round(cx);
@@ -142,13 +157,15 @@ const Level03: React.FC<Level03Props> = ({
 
       s.mousePressed = () => {
         if (gameEnded) return;
+        const cap = maxSizeScale();
+        sizeScale = Math.min(sizeScale, cap);
         const radius = baseRadius() * sizeScale;
-        sizeScale = growScaleOnCircleClick(s, x, y, radius, sizeScale);
+        sizeScale = growScaleOnCircleClick(s, x, y, radius, sizeScale, cap);
 
         const dx = s.mouseX - x;
         const dy = s.mouseY - y;
         const dist = Math.hypot(dx, dy) || 1;
-        const nudge = 60 * screenScale();
+        const nudge = 60 * screenScale() * movementSpeedMultiplier();
         x += (dx / dist) * nudge;
         y += (dy / dist) * nudge;
         x = s.constrain(x, 0, s.width);
@@ -160,9 +177,11 @@ const Level03: React.FC<Level03Props> = ({
 
         const now = s.millis();
         const holding = s.mouseIsPressed;
+        const cap = maxSizeScale();
+        sizeScale = Math.min(sizeScale, cap);
         const radius = baseRadius() * sizeScale;
-        const speed =
-          5 + ((sizeScale - 1) / (MAX_CLICK_SCALE - 1)) * 2.5;
+        const baseSpeed = cap > 1 ? 5 + ((sizeScale - 1) / (cap - 1)) * 2.5 : 5;
+        const speed = baseSpeed * movementSpeedMultiplier();
 
         const stepSpeed = speed / MOTION_TRAIL_STEPS;
         const herdFactor = holding ? 1.2 / MOTION_TRAIL_STEPS : 0;

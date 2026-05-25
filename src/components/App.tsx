@@ -7,7 +7,11 @@ import LevelAdviceFooter from "./LevelAdviceFooter";
 import Button from "./Button";
 import Level00, { DEFAULT_IDLE_CIRCLE_COUNT } from "./Level00";
 import { useTheme } from "../context/ThemeContext";
-import { setGameCanvasLayout } from "../constants/canvas";
+import {
+  MD_BREAKPOINT,
+  resetP5LayoutResizeCache,
+  scheduleP5LayoutResize,
+} from "../constants/canvas";
 import { formatRunTime, RUN_TIMER_TICK_MS, totalRunTicks } from "../utils";
 
 const MAX_LEVEL = 5;
@@ -93,13 +97,25 @@ const App: React.FC = () => {
   const showSplits = campaignComplete && levelSplits.length > 0;
 
   const showLevelAdvice = gameLive && message.length > 0;
+  const [isMobileViewport, setIsMobileViewport] = useState(
+    () =>
+      typeof window !== "undefined" && window.innerWidth < MD_BREAKPOINT
+  );
   const idleCircleCount =
     gameResult === "won" ? levelSplits.length : DEFAULT_IDLE_CIRCLE_COUNT;
 
   useEffect(() => {
-    setGameCanvasLayout({ mobileAdviceFooterVisible: showLevelAdvice });
-    requestAnimationFrame(() => window.dispatchEvent(new Event("resize")));
-  }, [showLevelAdvice]);
+    const mq = window.matchMedia(`(max-width: ${MD_BREAKPOINT - 1}px)`);
+    const sync = () => setIsMobileViewport(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    resetP5LayoutResizeCache();
+    scheduleP5LayoutResize();
+  }, [showLevelAdvice, isMobileViewport]);
 
   useEffect(() => {
     const targets = ["game-stage", "app-header", "level-advice-footer"]
@@ -108,15 +124,10 @@ const App: React.FC = () => {
 
     if (targets.length === 0) return;
 
-    const notify = () => window.dispatchEvent(new Event("resize"));
-    const observer = new ResizeObserver(() => notify());
+    const observer = new ResizeObserver(scheduleP5LayoutResize);
     targets.forEach((el) => observer.observe(el));
-    window.addEventListener("resize", notify);
 
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", notify);
-    };
+    return () => observer.disconnect();
   }, [showLevelAdvice]);
 
   return (

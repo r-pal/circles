@@ -16,8 +16,9 @@ export const growScaleOnCircleClick = (
   x: number,
   y: number,
   radius: number,
-  scale: number
+  scale: number,
+  maxScale: number = MAX_CLICK_SCALE
 ): number => {
   if (!isPointerOverCircle(s, x, y, radius)) return scale;
-  return Math.min(MAX_CLICK_SCALE, scale + CLICK_GROW_STEP);
+  return Math.min(maxScale, scale + CLICK_GROW_STEP);
 };
