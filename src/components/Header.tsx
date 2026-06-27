@@ -8,6 +8,7 @@ type HeaderProps = {
   message: string;
   startGame: () => void;
   campaignComplete?: boolean;
+  suppressStartButton?: boolean;
 };
 
 const Header: React.FC<HeaderProps> = ({
@@ -17,6 +18,7 @@ const Header: React.FC<HeaderProps> = ({
   message,
   startGame,
   campaignComplete = false,
+  suppressStartButton = false,
 }) => {
   const startLabel = () => {
     if (!gameLive && gameResult === undefined) {
@@ -29,7 +31,7 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const label = startLabel();
-  const showStartButton = Boolean(label);
+  const showStartButton = Boolean(label) && !suppressStartButton;
 
   return (
     <header

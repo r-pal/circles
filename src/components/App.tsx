@@ -94,6 +94,8 @@ const App: React.FC = () => {
   const lastSplit = levelSplits[levelSplits.length - 1];
   const campaignComplete =
     gameResult === "won" && levelSplits.length >= MAX_LEVEL;
+  const showLevelComplete =
+    !gameLive && gameResult === "won" && !campaignComplete;
   const showSplits = campaignComplete && levelSplits.length > 0;
 
   const showLevelAdvice = gameLive && message.length > 0;
@@ -139,6 +141,7 @@ const App: React.FC = () => {
         message={message}
         startGame={startGame}
         campaignComplete={campaignComplete}
+        suppressStartButton={showLevelComplete}
       />
       <div
         id="game-stage"
@@ -179,7 +182,30 @@ const App: React.FC = () => {
                 circleCount={idleCircleCount}
               />
               <div className="absolute top-1/2 inset-0 flex flex-col items-center justify-center z-50 pointer-events-none select-none text-center px-4">
-                {gameResult === "won" && (
+                {showLevelComplete && (
+                  <>
+                    {lastSplit !== undefined && (
+                      <p className="text-on-canvas text-2xl md:text-4xl mb-6">
+                        Level {levelSplits.length}: {formatRunTime(lastSplit)}
+                      </p>
+                    )}
+                    <div
+                      className="pointer-events-auto cursor-pointer"
+                      onClick={startGame}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          startGame();
+                        }
+                      }}
+                    >
+                      <Button type="button" text="NEXT LEVEL" header />
+                    </div>
+                  </>
+                )}
+                {gameResult === "won" && campaignComplete && (
                   <>
                     <h1 className="text-on-canvas text-7xl md:text-9xl">
                       WINNER

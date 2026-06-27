@@ -21,8 +21,8 @@ const Button: React.FC<ButtonProps> = ({
     className={clsx(
       "text-sm p-1 rounded transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent",
       variant
-        ? "text-foreground hover:bg-foreground/10"
-        : "bg-btn-fill text-btn-text hover:opacity-90"
+        ? "text-foreground border border-foreground/40 hover:bg-foreground/10"
+        : "bg-btn-fill text-btn-text border-2 border-btn-text hover:opacity-90"
     )}
     form={form}
     type={type}
